@@ -1,0 +1,159 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2025
+
+% The authors should use one of these tracks.
+% Before accepting by the NeurIPS conference, select one of the options below.
+% 0. "default" for submission
+ \usepackage[main,final]{neurips_2025}
+% the "default" option is equal to the "main" option, which is used for the Main Track with double-blind reviewing.
+% 1. "main" option is used for the Main Track
+%  \usepackage[main]{neurips_2025}
+% 2. "position" option is used for the Position Paper Track
+%  \usepackage[position]{neurips_2025}
+% 3. "dandb" option is used for the Datasets & Benchmarks Track
+ % \usepackage[dandb]{neurips_2025}
+% 4. "creativeai" option is used for the Creative AI Track
+%  \usepackage[creativeai]{neurips_2025}
+% 5. "sglblindworkshop" option is used for the Workshop with single-blind reviewing
+ % \usepackage[sglblindworkshop]{neurips_2025}
+% 6. "dblblindworkshop" option is used for the Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop]{neurips_2025}
+
+% After being accepted, the authors should add "final" behind the track to compile a camera-ready version.
+% 1. Main Track
+ % \usepackage[main, final]{neurips_2025}
+% 2. Position Paper Track
+%  \usepackage[position, final]{neurips_2025}
+% 3. Datasets & Benchmarks Track
+ % \usepackage[dandb, final]{neurips_2025}
+% 4. Creative AI Track
+%  \usepackage[creativeai, final]{neurips_2025}
+% 5. Workshop with single-blind reviewing
+%  \usepackage[sglblindworkshop, final]{neurips_2025}
+% 6. Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop, final]{neurips_2025}
+% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote.
+% For workshops (5., 6.), the authors should add the name of the workshop, "\workshoptitle" command is used to set the workshop title.
+% \workshoptitle{WORKSHOP TITLE}
+
+% "preprint" option is used for arXiv or other preprint submissions
+ % \usepackage[preprint]{neurips_2025}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2025}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{amsmath}
+
+
+\title{When Does Coordination Help Small Models? A Budget-Matched Comparison of Single Agents, Ensembles, and Hierarchies}
+
+\author{%
+  Natalia Siwek \\
+  Harvard University \\
+  \And
+  Lia Zheng \\
+  Harvard University \\
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Background and motivation}
+
+Multi-agent systems built from LLMs now appear in science, research assistance and cybersecurity. A common claim is that when organized well, many small agents can do the outperform a work of one intelligent agent. The evidence is mixed, and the cause of these performance gains remains unclear. A multi-agent system can differ from a single agent in three ways: \textbf{1) ensemble effect}: it samples several answers and aggregates them, \textbf{2) decomposition and information management}: it splits a task into parts, and \textbf{3) communication}: it lets agents read each other's messages. These systems also use more tokens, so a fair comparison must fix the inference budget.
+
+Our main research question is: given a fixed total token budget or fixed time, when does a coordinated hierarchy of small open-weight models outperform both a single agent and an independent ensemble with the same tools and budget? Thus, we are interested in seeing when multi-agent systems are useful and when the benefits extend beyond basic ensembling effects.
+
+\textbf{Hypothesis.} Coordination is most beneficial when 1) subtasks are interdependent, so independent attempts cannot reuse partial results, and 2) the reasoning or context needed exceeds what one small agent can handle within its budget. On easily parallelized tasks, majority voting should match the hierarchy at lower cost. Then the gain of a hierarchy over the best baseline grows with task interdependence and shrinks as budget or model size grows. We expect the orchestrator to matter more than the workers, as suggested by prior work.
+
+Our results will add to the open-vs-closed source model debate, showing if/when clever system design can substitute for model scale.
+
+\section{Key related work}
+
+\textbf{Ensembling as the baseline.} \citet{choi2025debate} split multi-agent debate into majority voting and inter-agent debate. Voting accounts for most of the reported gains. We treat an independent ensemble with majority voting as the baseline to beat.
+
+\textbf{Small agents versus one large model.} \citet{zywot2026small} show that teams of small models with tools can compete with one large model, and that performance depends mostly on orchestrator capacity rather than sub-agent capacity. We test this under a strict token budget within one model family.
+
+\textbf{Theory of communication.} \citet{rizvi2025benefits} give a framework for when communication between agents is provably useful, with trade-offs between agent count and bandwidth. This motivates varying the amount of communication in our designs.
+
+\textbf{Cost of communication and memory.} \citet{zhang2025cut} (AgentPrune) remove redundant messages to cut token cost. \citet{fioresi2026learning} learn which agent steps to write to a shared memory bank. We use tokens as the common budget axis and do not train new communication mechanisms.
+
+\textbf{Small open models as workers.} \citet{lambert2026next} argues that small open models should act as complementary tools for frontier agents, not as rivals. He suggests that tasks a frontier agent repeats tens to hundreds of times can be handed to small, specialized models that are much cheaper and faster, for example one model with adapters for narrow skills. He proposes judging them by savings in compute and time.  We test the case where the whole team is small and from one family, under a fixed token budget. \\
+
+\textbf{Gap.} Prior work rarely compares single agents, ensembles and hierarchies at an equal total budget within one model family, on tasks with controlled interdependence.
+
+\section{Problem statement}
+
+\textbf{Setup.} We fix one open-weight family with several sizes. Our initial choice is Qwen3 (for example 1.7B, 4B, 8B and 14B, with 32B as a single-agent reference), to be confirmed in a pilot. All systems get the same tools (code execution, plus retrieval for QA) and the same answer format.
+
+\textbf{Systems.} Let $B$ be the total token budget per problem, counting input and output tokens of all agents.
+\begin{enumerate}
+  \item \emph{Single agent:} one model reasons with budget $B$.
+  \item \emph{Independent ensemble:} $N$ agents get $\approx B/N$ tokens each, cannot communicate, and the answer is a majority vote.
+  \item \emph{Hierarchy:} an orchestrator splits the task, workers solve subtasks, and the orchestrator merges results. We vary depth, number of workers, and whether workers share memory. Orchestrator and workers may differ in size or capacity level. The total token budget $B$ is shared across the orchestrator, workers, and communication, counting all input and output tokens.
+\end{enumerate}
+
+\textbf{Tasks.} We span interdependence with: (a) MATH-500, mostly separable; (b) multi-hop QA with retrieval (for example MuSiQue), where later steps depend on earlier ones; (c) a synthetic task with tunable dependency depth $d$ (chained variable updates with distractors), which varies interdependence directly. We will check that single-agent accuracy at a mid budget is comparable across $d$.
+
+\textbf{Evaluation.} We report accuracy as a function of for varying sizes; $\{2\text{k}, 4\text{k}, 8\text{k}, 16\text{k}, 32\text{k}\}$ for each system, task and size. As a secondary metric, we compare the best small-model system with the largest single model at matched token count and time. 
+
+\section{Expected challenges and risks}
+
+\textbf{Budget accounting.} Multi-agent systems re-read context often, so input tokens can dominate. We count input and output together and also report output-only.
+
+\textbf{Protocol failures.} Models near 1--4B may break message formats or ignore subtasks. A null result could reflect this and not a limit of coordination. We log format errors separately and use constrained decoding where needed.
+
+\textbf{Confounds.} A hierarchy may win only because its prompts are better adjusted. All systems get the same tuning effort on a dev set, and prompts are frozen before testing.
+
+\textbf{Contamination and saturation.} Qwen models may have seen MATH-style problems. Larger sizes may saturate easy tasks, in which case we would find a harder benchmark not saturated by any of the tested models.
+
+\textbf{Compute cost} The grid (systems $\times$ sizes $\times$ budgets $\times$ tasks $\times$ seeds) is large. We will serve models with vLLM, prune the grid after a pilot, and prioritize 4B and 8B. The shared-memory variant and the scaling fit are dropped first.
+
+\textbf{What could go wrong.} The most likely negative result is that voting matches or beats the hierarchy everywhere. We would report this with the budget-matched protocol. Performance gains on only one task would limit our claims, and we will say so. We will discuss any large change of plan with our supervisor, Lily Lavitas.
+\newpage
+\small
+\begin{thebibliography}{6}\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+\bibitem[Choi et~al.(2025)]{choi2025debate}
+H.~K. Choi, X.~Zhu, and S.~Li.
+Debate or vote: Which yields better decisions in multi-agent large language models?
+\emph{NeurIPS}, 2025.
+
+\bibitem[Fioresi et~al.(2026)]{fioresi2026learning}
+J.~Fioresi, P.~P. Kulkarni, A.~Vayani, S.~Wang, and M.~Shah.
+Learning to share: Selective memory for efficient parallel agentic systems.
+\emph{ICML}, PMLR 306, 2026.
+
+\bibitem[Lambert(2026)]{lambert2026next}
+N.~Lambert.
+What comes next with open models.
+\emph{Interconnects} (blog post), March 2026. \url{https://www.interconnects.ai/p/the-next-phase-of-open-models}
+\bibitem[Rizvi-Martel et~al.(2025)]{rizvi2025benefits}
+M.~Rizvi-Martel, S.~Bhattamishra, N.~Rathi, G.~Rabusseau, and M.~Hahn.
+Benefits and limitations of communication in multi-agent reasoning.
+arXiv:2510.13903, 2025.
+
+\bibitem[Zhang et~al.(2025)]{zhang2025cut}
+G.~Zhang, Y.~Yue, Z.~Li, S.~Yun, G.~Wan, K.~Wang, D.~Cheng, J.~Yu, and T.~Chen.
+Cut the crap: An economical communication pipeline for LLM-based multi-agent systems.
+\emph{ICLR}, 2025.
+
+\bibitem[\.{Z}ywot et~al.(2026)]{zywot2026small}
+A.~\.{Z}ywot, X.~Chen, Y.~Yuan, A.~S{\o}gaard, and M.~de~Rijke.
+Can small agents collaborate to beat a single large language model?
+arXiv:2601.11327, 2026.
+\end{thebibliography}
+
+\end{document}
