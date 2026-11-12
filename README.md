@@ -31,3 +31,20 @@ Each problem gets three fresh chats with sampling seeds 42, 43, and 44 when usin
 Each completed, parseable answer casts one vote for its ordered pair. Truncated and unparseable responses abstain. A pair needs two of the three votes to win. When no pair gets two votes, the prediction is null and the problem counts as incorrect. Voting uses no model tokens.
 
 The [ensemble sample log](results/ensemble_smoke.jsonl) records the three attempts in order, with their seeds, caps, token counts, final responses, and votes. The outer record contains the majority prediction, correctness, and total token usage for the problem.
+
+## Run the hierarchy
+
+Use the same input JSONL and environment as the baselines.
+
+```sh
+python run_hierarchy.py problems.jsonl --budget 4000 --seed 42 --output hierarchy_results.jsonl
+```
+
+1. The Qwen3-4B orchestrator reads the problem and writes one assignment for each worker. Its plan includes a boolean indicating whether worker 2 needs worker 1's result.
+2. Worker 1 reads the problem and its assignment and sends a short report.
+3. Worker 2 reads the problem and its own assignment. It also gets the first report when the plan requests it.
+4. The orchestrator reads the original problem, both assignments, and both reports to produce the final pair. The same parser and answer key used by the baselines score its answer.
+
+All roles use fresh chats with the same model revision, thinking mode, and sampling settings as the baselines. The four stages use consecutive seeds starting at `--seed`. The runner releases one quarter of the total budget at each stage and carries unused tokens forward. For a 4,000-token cap, cumulative spending after each stage can reach at most 1,000, 2,000, 3,000, and 4,000 tokens respectively. Each call pays for its full prompt, including repeated problem text and forwarded messages, and all generated tokens.
+
+The [hierarchy sample log](results/hierarchy_smoke.jsonl) contains each stage's messages, final text, cap, stop reason, and token counts. A malformed plan, empty report, or truncated stage ends the problem with an incorrect result and records the failed stage. If a prompt cannot fit its allowance, that stage records its required length and consumes zero model tokens. The runner makes no retries.

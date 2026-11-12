@@ -64,18 +64,20 @@ def parse_answer(text):
 
 
 @torch.inference_mode()
-def solve(problem, model, tokenizer, budget, seed):
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": problem["prompt"]},
-    ]
+def generate_chat(messages, model, tokenizer, budget, seed):
+    """Run one fresh chat under a cap that includes its rendered prompt."""
     inputs = tokenizer.apply_chat_template(
         messages, tokenize=True, add_generation_prompt=True, enable_thinking=True,
         return_tensors="pt", return_dict=True,
     ).to(model.device)
     input_tokens = inputs["input_ids"].shape[1]
     if input_tokens >= budget:
-        raise ValueError(f"Prompt requires {input_tokens} tokens; budget {budget} leaves no output.")
+        # Tokenization happened locally, but no tokens were sent through the model.
+        return {
+            "stop_reason": "prompt_too_long", "required_input_tokens": input_tokens,
+            "final_text": "", "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
+            "budget": budget, "sampling_seed": seed,
+        }
 
     torch.manual_seed(seed)
     sequence = model.generate(
@@ -85,9 +87,26 @@ def solve(problem, model, tokenizer, budget, seed):
     output_ids = sequence[0, input_tokens:].tolist()
     eos = model.generation_config.eos_token_id
     stopped = output_ids[-1] in (eos if isinstance(eos, list) else [eos])
-    text = final_answer(tokenizer, output_ids)
-    predicted, format_ok = parse_answer(text)
-    if not stopped:
+    return {
+        "stop_reason": "stop" if stopped else "length_limit",
+        "final_text": final_answer(tokenizer, output_ids), "input_tokens": input_tokens,
+        "output_tokens": len(output_ids), "total_tokens": input_tokens + len(output_ids),
+        "budget": budget, "sampling_seed": seed,
+    }
+
+
+def solve(problem, model, tokenizer, budget, seed):
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": problem["prompt"]},
+    ]
+    reply = generate_chat(messages, model, tokenizer, budget, seed)
+    stop_reason = reply.pop("stop_reason")
+    if stop_reason == "prompt_too_long":
+        needed = reply["required_input_tokens"]
+        raise ValueError(f"Prompt requires {needed} tokens; budget {budget} leaves no output.")
+    predicted, format_ok = parse_answer(reply["final_text"])
+    if stop_reason == "length_limit":
         status = "length_limit"
     elif predicted is None:
         status = "format_error"
@@ -97,10 +116,9 @@ def solve(problem, model, tokenizer, budget, seed):
         status = "wrong_answer"
 
     return {
-        **problem, "final_text": text, "prediction": predicted, "status": status,
-        "correct": status == "correct", "format_ok": format_ok, "input_tokens": input_tokens,
-        "output_tokens": len(output_ids), "total_tokens": input_tokens + len(output_ids),
-        "model": MODEL, "revision": REVISION, "budget": budget, "sampling_seed": seed,
+        **problem, **reply, "prediction": predicted, "status": status,
+        "correct": status == "correct", "format_ok": format_ok,
+        "model": MODEL, "revision": REVISION,
         "device": model.device.type, "dtype": str(model.dtype),
     }
 
