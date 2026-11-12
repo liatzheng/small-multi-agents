@@ -105,12 +105,13 @@ def solve(problem, model, tokenizer, budget, seed):
     }
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+def run_cli(description, solve_problem, default_output):
+    """Load Qwen once and run the selected evaluation on each JSONL problem."""
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument("problems", type=Path, help="JSONL file from the problem generator")
-    parser.add_argument("--output", type=Path, default=Path("single_agent_results.jsonl"))
+    parser.add_argument("--output", type=Path, default=Path(default_output))
     parser.add_argument("--budget", type=int, default=4000, help="total tokens per problem")
-    parser.add_argument("--seed", type=int, default=42, help="sampling seed for each fresh chat")
+    parser.add_argument("--seed", type=int, default=42, help="starting sampling seed for each problem")
     args = parser.parse_args()
     if not 1 <= args.budget <= 32768:
         parser.error("--budget must be between 1 and 32768")
@@ -134,7 +135,7 @@ def main():
     counts = {"independent": [0, 0], "dependent": [0, 0]}
     with args.output.open("x", encoding="utf-8") as log:
         for problem in problems:
-            result = solve(problem, model, tokenizer, args.budget, args.seed)
+            result = solve_problem(problem, model, tokenizer, args.budget, args.seed)
             print(json.dumps(result), file=log, flush=True)
             count = counts[problem["kind"]]
             count[0] += result["correct"]
@@ -143,6 +144,10 @@ def main():
         if total:
             print(f"{kind}: {correct}/{total} correct")
     print(f"Saved {len(problems)} responses to {args.output}")
+
+
+def main():
+    run_cli(__doc__, solve, "single_agent_results.jsonl")
 
 
 if __name__ == "__main__":

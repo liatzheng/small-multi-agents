@@ -17,3 +17,17 @@ Increase `--pairs` to generate a larger dataset. Each input line gets one fresh 
 Each output line includes the problem, answer key, final response, parsed prediction, correctness, and token counts. The budget covers the tokenized chat template and all generated tokens, including reasoning and the end-of-sequence token. The scorer reads an ordered pair such as `(7, 5)` on the final line or a single explicitly boxed pair at the end of the final response. It compares the two integers in order. The separate `format_ok` flag records whether the entire final response was just the requested pair. Unparseable and truncated responses count as incorrect and have separate status labels. The output file is created fresh and each result is flushed as it completes.
 
 The [two-problem sample log](results/single_agent_smoke.jsonl) was produced on Apple Silicon with the settings above.
+
+## Run the independent ensemble
+
+Use the same generated input file and environment as the single-agent run.
+
+```sh
+python run_ensemble.py problems.jsonl --budget 4000 --seed 42 --output ensemble_results.jsonl
+```
+
+Each problem gets three fresh chats with sampling seeds 42, 43, and 44 when using the command above. Each chat sees the same problem and system instruction. The three caps are 1,333, 1,333, and 1,334 tokens, including each copy of the prompt. An attempt that finishes early leaves its remaining tokens unused.
+
+Each completed, parseable answer casts one vote for its ordered pair. Truncated and unparseable responses abstain. A pair needs two of the three votes to win. When no pair gets two votes, the prediction is null and the problem counts as incorrect. Voting uses no model tokens.
+
+The [ensemble sample log](results/ensemble_smoke.jsonl) records the three attempts in order, with their seeds, caps, token counts, final responses, and votes. The outer record contains the majority prediction, correctness, and total token usage for the problem.
