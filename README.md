@@ -48,3 +48,14 @@ python run_hierarchy.py problems.jsonl --budget 4000 --seed 42 --output hierarch
 All roles use fresh chats with the same model revision, thinking mode, and sampling settings as the baselines. The four stages use consecutive seeds starting at `--seed`. The runner releases one quarter of the total budget at each stage and carries unused tokens forward. For a 4,000-token cap, cumulative spending after each stage can reach at most 1,000, 2,000, 3,000, and 4,000 tokens respectively. Each call pays for its full prompt, including repeated problem text and forwarded messages, and all generated tokens.
 
 The [hierarchy sample log](results/hierarchy_smoke.jsonl) contains each stage's messages, final text, cap, stop reason, and token counts. A malformed plan, empty report, or truncated stage ends the problem with an incorrect result and records the failed stage. If a prompt cannot fit its allowance, that stage records its required length and consumes zero model tokens. The runner makes no retries.
+
+## Generate harder dependency problems
+
+```sh
+python generate_problems.py --pairs 10 --seed 2028 --chain-length 2 > chains.jsonl
+python run_single_agent.py chains.jsonl --budget 4000 --seed 42 --output chain-results.jsonl
+```
+
+Each target chain has `--chain-length` updates of the form `next = (factor * previous + offset) mod 97`. The prompt shuffles the equations and interleaves a third chain of the same length as a distractor. The solver must find the two requested variables and return their values in order.
+
+Both members of a pair have the same givens, target labels, coefficients, and equation order. One variable reference changes. In the independent version the second chain starts from its own given value. In the dependent version it starts from the first chain’s final result. At length 2, both prompts contain six equations and four relevant updates. Their longest relevant paths have two and four updates, respectively. [Single-agent calibration](results/chain_calibration/README.md)
