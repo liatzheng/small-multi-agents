@@ -10,6 +10,10 @@ The defaults reproduce the existing length-2 and length-4 calibration pairs with
 
 The notebook saves each completed problem to `MyDrive/small-multi-agents/runs/<RUN_NAME>/`. Reconnect with the same GPU type and rerun the cells to resume saved progress. Use a new run name when changing the GPU, settings, or code version. It exports the three JSONL logs, accuracy and token-usage tables, status counts, problem inputs, and run configuration in that folder. Copy these outputs into `results/` when adding a finished run to GitHub. Model outputs can vary with GPU precision and software versions, so run all three systems in the same environment for each comparison.
 
+## Follow up the initial Colab run
+
+[Open the 8k/16k budget sweep in Colab](https://colab.research.google.com/github/liatzheng/small-multi-agents/blob/main/budget_sweep.ipynb). Select a T4 to match `initialresultscolab.ipynb`, then run all cells. It evaluates all three systems on the same four length-2/length-4 problems at 8k and 16k, for 24 new evaluations. The experiment code is pinned to the initial run's commit. Each problem is checkpointed in Drive, and the tables report accuracy, token usage, ensemble attempt outcomes, and hierarchy stage failures. Existing 4k logs are included when their environment and inputs match.
+
 ## Run the single-agent baseline
 
 From the repository root, install the dependencies and generate one pair of problems. The first run downloads about 8 GB of model weights. The runner uses CUDA, Apple Silicon's MPS, or CPU, in that order.
