@@ -3,7 +3,7 @@
 import json
 import re
 
-from run_single_agent import SYSTEM_PROMPT, generate_chat, parse_answer, run_cli
+from run_single_agent import SYSTEM_PROMPT, parse_answer, run_cli, run_hf
 
 PLAN_PROMPT = (
     "Split the problem into two distinct subtasks, one per worker. Put any prerequisite "
@@ -39,7 +39,7 @@ def parse_plan(text):
     return plan
 
 
-def solve_hierarchy(problem, model, tokenizer, budget, seed):
+def solve_hierarchy_steps(problem, budget, seed):
     calls = []
     prompt = problem["prompt"]
 
@@ -51,7 +51,7 @@ def solve_hierarchy(problem, model, tokenizer, budget, seed):
             {"role": "system", "content": instruction},
             {"role": "user", "content": content},
         ]
-        reply = generate_chat(messages, model, tokenizer, cap, seed + index)
+        (reply,) = yield [{"messages": messages, "cap": cap, "seed": seed + index}]
         calls.append({"stage": stage, "messages": messages, **reply})
         if reply["stop_reason"] != "stop":
             raise ProtocolFailure(stage, reply["stop_reason"])
@@ -61,13 +61,13 @@ def solve_hierarchy(problem, model, tokenizer, budget, seed):
 
     answer, prediction, format_ok, failed_stage = "", None, False, None
     try:
-        plan = parse_plan(call("planner", PLAN_PROMPT, prompt))
-        first = call("worker_1", WORK_PROMPT, f"Problem:\n{prompt}\n\nAssignment:\n{plan['first']}")
+        plan = parse_plan((yield from call("planner", PLAN_PROMPT, prompt)))
+        first = yield from call("worker_1", WORK_PROMPT, f"Problem:\n{prompt}\n\nAssignment:\n{plan['first']}")
         task = f"Problem:\n{prompt}\n\nAssignment:\n{plan['second']}"
         if plan["pass_first"]:
             task += f"\n\nWorker 1 report:\n{first}"
-        second = call("worker_2", WORK_PROMPT, task)
-        answer = call(
+        second = yield from call("worker_2", WORK_PROMPT, task)
+        answer = yield from call(
             "merge", SYSTEM_PROMPT,
             f"Problem:\n{prompt}\n\nWorker 1 assignment: {plan['first']}\nWorker 1 report: {first}"
             f"\n\nWorker 2 assignment: {plan['second']}\nWorker 2 report: {second}"
@@ -88,8 +88,11 @@ def solve_hierarchy(problem, model, tokenizer, budget, seed):
         "correct": status == "correct", "status": status, "failed_stage": failed_stage,
         "calls": calls, "budget": budget, "input_tokens": input_tokens,
         "output_tokens": output_tokens, "total_tokens": input_tokens + output_tokens,
-        "device": model.device.type, "dtype": str(model.dtype),
     }
+
+
+def solve_hierarchy(problem, model, tokenizer, budget, seed):
+    return run_hf(solve_hierarchy_steps(problem, budget, seed), model, tokenizer)
 
 
 if __name__ == "__main__":

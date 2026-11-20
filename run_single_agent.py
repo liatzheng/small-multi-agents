@@ -96,16 +96,26 @@ def generate_chat(messages, model, tokenizer, budget, seed):
     }
 
 
-def solve(problem, model, tokenizer, budget, seed):
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": problem["prompt"]},
-    ]
-    reply = generate_chat(messages, model, tokenizer, budget, seed)
+def run_hf(steps, model, tokenizer):
+    """Answer a solver's model requests one at a time with Transformers."""
+    replies = None
+    while True:
+        try:
+            requests = steps.send(replies)
+        except StopIteration as done:
+            return {**done.value, "device": model.device.type, "dtype": str(model.dtype)}
+        replies = [
+            generate_chat(r["messages"], model, tokenizer, r["cap"], r["seed"]) for r in requests
+        ]
+
+
+def score_reply(problem, reply):
+    """Score one direct answer to the problem."""
+    reply = dict(reply)
     stop_reason = reply.pop("stop_reason")
     if stop_reason == "prompt_too_long":
         needed = reply["required_input_tokens"]
-        raise ValueError(f"Prompt requires {needed} tokens; budget {budget} leaves no output.")
+        raise ValueError(f"Prompt requires {needed} tokens; budget {reply['budget']} leaves no output.")
     predicted, format_ok = parse_answer(reply["final_text"])
     if stop_reason == "length_limit":
         status = "length_limit"
@@ -115,12 +125,27 @@ def solve(problem, model, tokenizer, budget, seed):
         status = "correct"
     else:
         status = "wrong_answer"
-
     return {
         **problem, **reply, "prediction": predicted, "status": status,
         "correct": status == "correct", "format_ok": format_ok,
-        "device": model.device.type, "dtype": str(model.dtype),
     }
+
+
+def direct_messages(problem):
+    return [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": problem["prompt"]},
+    ]
+
+
+def solve_steps(problem, budget, seed):
+    """Yield lists of model requests and receive their replies; return the scored result."""
+    (reply,) = yield [{"messages": direct_messages(problem), "cap": budget, "seed": seed}]
+    return score_reply(problem, reply)
+
+
+def solve(problem, model, tokenizer, budget, seed):
+    return run_hf(solve_steps(problem, budget, seed), model, tokenizer)
 
 
 def load_model(model_name=MODEL, revision=REVISION):
@@ -157,9 +182,42 @@ def read_finished(path, problems, settings):
         raise ValueError(f"{path} has more results than the problem file")
     for line_no, (result, problem) in enumerate(zip(finished, problems), start=1):
         expected = {**problem, **settings}
-        if any(result.get(key) != value for key, value in expected.items()):
+        # Logs written before the backend field existed all came from Transformers.
+        actual = {"backend": "transformers", **result}
+        if any(actual.get(key) != value for key, value in expected.items()):
             raise ValueError(f"{path}:{line_no}: result does not match this problem file and run settings")
     return finished, keep
+
+
+def resume_log(path, problems, settings, resume):
+    """Return the finished results in an existing log after trimming an interrupted write."""
+    if not path.exists():
+        return []
+    if not resume:
+        raise ValueError(f"{path} already exists; choose a new output or pass --resume")
+    finished, keep = read_finished(path, problems, settings)
+    with path.open("r+b") as stream:
+        stream.truncate(keep)
+    print(f"Resuming after {len(finished)} finished problems in {path}", flush=True)
+    return finished
+
+
+def log_result(log, result):
+    print(json.dumps(result), file=log, flush=True)
+    print(f"pair {result['pair_id']} {result['kind']}: {result['status']}, "
+          f"{result['total_tokens']} tokens, {result['seconds']}s", flush=True)
+
+
+def print_summary(results, path):
+    counts = {"independent": [0, 0], "dependent": [0, 0]}
+    for result in results:
+        count = counts[result["kind"]]
+        count[0] += result["correct"]
+        count[1] += 1
+    for kind, (correct, total) in counts.items():
+        if total:
+            print(f"{kind}: {correct}/{total} correct")
+    print(f"Saved {len(results)} responses to {path}", flush=True)
 
 
 def run_cli(description, solve_problem, default_output):
@@ -184,18 +242,14 @@ def run_cli(description, solve_problem, default_output):
         problems = read_problems(args.problems)
     except (ValueError, OSError) as error:
         parser.error(str(error))
-    settings = {"model": args.model, "revision": args.revision, "budget": args.budget, "seed": args.seed}
-    finished = []
-    if args.output.exists():
-        if not args.resume:
-            parser.error(f"{args.output} already exists; choose a new --output file or pass --resume")
-        try:
-            finished, keep = read_finished(args.output, problems, settings)
-        except ValueError as error:
-            parser.error(str(error))
-        with args.output.open("r+b") as stream:
-            stream.truncate(keep)
-        print(f"Resuming after {len(finished)} finished problems in {args.output}")
+    settings = {
+        "model": args.model, "revision": args.revision, "budget": args.budget, "seed": args.seed,
+        "backend": "transformers",
+    }
+    try:
+        finished = resume_log(args.output, problems, settings, args.resume)
+    except ValueError as error:
+        parser.error(str(error))
 
     results = list(finished)
     remaining = problems[len(finished):]
@@ -206,22 +260,10 @@ def run_cli(description, solve_problem, default_output):
             for problem in remaining:
                 start = time.perf_counter()
                 result = solve_problem(problem, model, tokenizer, args.budget, args.seed)
-                seconds = round(time.perf_counter() - start, 1)
-                result.update(model=args.model, revision=args.revision, seed=args.seed, seconds=seconds)
-                print(json.dumps(result), file=log, flush=True)
+                result.update(settings, seconds=round(time.perf_counter() - start, 1))
+                log_result(log, result)
                 results.append(result)
-                print(f"pair {problem['pair_id']} {problem['kind']}: {result['status']}, "
-                      f"{result['total_tokens']} tokens, {seconds}s", flush=True)
-
-    counts = {"independent": [0, 0], "dependent": [0, 0]}
-    for result in results:
-        count = counts[result["kind"]]
-        count[0] += result["correct"]
-        count[1] += 1
-    for kind, (correct, total) in counts.items():
-        if total:
-            print(f"{kind}: {correct}/{total} correct")
-    print(f"Saved {len(results)} responses to {args.output}")
+    print_summary(results, args.output)
 
 
 def main():

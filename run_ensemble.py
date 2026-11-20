@@ -2,7 +2,7 @@
 
 from collections import Counter
 
-from run_single_agent import run_cli, solve
+from run_single_agent import direct_messages, run_cli, run_hf, score_reply
 
 
 def majority(votes):
@@ -14,13 +14,17 @@ def majority(votes):
     return None
 
 
-def solve_ensemble(problem, model, tokenizer, budget, seed):
+def solve_ensemble_steps(problem, budget, seed):
     base, remainder = divmod(budget, 3)
     caps = [base] * (3 - remainder) + [base + 1] * remainder
+    # Each attempt is a new chat from only the original problem, so all three go out together.
+    replies = yield [
+        {"messages": direct_messages(problem), "cap": cap, "seed": seed + i}
+        for i, cap in enumerate(caps)
+    ]
     attempts = []
-    for i, cap in enumerate(caps):
-        # solve starts a new chat from only the original problem on every call.
-        result = solve(problem, model, tokenizer, cap, seed + i)
+    for reply in replies:
+        result = score_reply(problem, reply)
         attempt = {key: result[key] for key in (
             "sampling_seed", "budget", "input_tokens", "output_tokens", "total_tokens",
             "final_text", "prediction", "format_ok", "status",
@@ -40,8 +44,11 @@ def solve_ensemble(problem, model, tokenizer, budget, seed):
         **problem, "prediction": prediction, "correct": correct, "status": status,
         "attempts": attempts, "budget": budget, "input_tokens": input_tokens,
         "output_tokens": output_tokens, "total_tokens": input_tokens + output_tokens,
-        "device": model.device.type, "dtype": str(model.dtype),
     }
+
+
+def solve_ensemble(problem, model, tokenizer, budget, seed):
+    return run_hf(solve_ensemble_steps(problem, budget, seed), model, tokenizer)
 
 
 if __name__ == "__main__":
