@@ -210,6 +210,8 @@ def run_cli(description, solve_problem, default_output):
                 result.update(model=args.model, revision=args.revision, seed=args.seed, seconds=seconds)
                 print(json.dumps(result), file=log, flush=True)
                 results.append(result)
+                print(f"pair {problem['pair_id']} {problem['kind']}: {result['status']}, "
+                      f"{result['total_tokens']} tokens, {seconds}s", flush=True)
 
     counts = {"independent": [0, 0], "dependent": [0, 0]}
     for result in results:
