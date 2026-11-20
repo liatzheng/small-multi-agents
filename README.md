@@ -68,7 +68,7 @@ python generate_problems.py --pairs 10 --seed 2028 --chain-length 2 > chains.jso
 python run_single_agent.py chains.jsonl --budget 4000 --seed 42 --output chain-results.jsonl
 ```
 
-Each target chain has `--chain-length` updates of the form `next = (factor * previous + offset) mod 97`. The prompt shuffles the equations and interleaves a third chain of the same length as a distractor. The solver must find the two requested variables and return their values in order.
+Each target chain has `--chain-length` updates of the form `next = (factor * previous + offset) mod 97`. The prompt shuffles the equations and interleaves a third chain as a distractor. It has the same length unless `--distractor-length` sets another. Setting it to `N - 2D` keeps every prompt at `N` equations, so changing `D` changes the dependency path without changing the amount of text to read. The solver must find the two requested variables and return their values in order.
 
 Both members of a pair have the same givens, target labels, coefficients, and equation order. One variable reference changes. In the independent version the second chain starts from its own given value. In the dependent version it starts from the first chain’s final result. At length 2, both prompts contain six equations and four relevant updates. Their longest relevant paths have two and four updates, respectively. [Single-agent calibration](results/chain_calibration/README.md)
 

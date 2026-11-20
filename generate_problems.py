@@ -42,17 +42,20 @@ def generate_problems(num_pairs=1, seed=None):
             }
 
 
-def generate_chain_problems(num_pairs, seed, length):
+def generate_chain_problems(num_pairs, seed, length, distractor_length=None):
     """Generate matched pairs with two target chains and one distractor chain."""
-    if num_pairs < 1 or length < 1:
-        raise ValueError("--pairs and --chain-length must be positive")
+    if distractor_length is None:
+        distractor_length = length
+    if num_pairs < 1 or length < 1 or distractor_length < 1:
+        raise ValueError("--pairs, --chain-length, and --distractor-length must be positive")
     rng = random.Random(seed)
     modulus = 97
     for pair_id in range(1, num_pairs + 1):
         # Random labels and shuffled equations require tracing inputs to targets.
-        labels = [f"v{i:02d}" for i in range(3 * (length + 1))]
+        labels = [f"v{i:02d}" for i in range(2 * (length + 1) + distractor_length + 1)]
         rng.shuffle(labels)
-        chains = [labels[i:i + length + 1] for i in range(0, len(labels), length + 1)]
+        split = length + 1
+        chains = [labels[:split], labels[split:2 * split], labels[2 * split:]]
         seeds = {chain[0]: rng.randrange(modulus) for chain in chains}
         rules = {}
         for chain in chains:
@@ -90,7 +93,7 @@ def generate_chain_problems(num_pairs, seed, length):
                 + f"\nReturn ({first[-1]}, {second[-1]}) in that order."
             )
             yield {"pair_id": pair_id, "kind": kind, "chain_length": length,
-                   "prompt": prompt, "answer": [a, b]}
+                   "distractor_length": distractor_length, "prompt": prompt, "answer": [a, b]}
 
 
 def main():
@@ -99,12 +102,17 @@ def main():
     parser.add_argument("--seed", type=int, help="seed for reproducible sampling")
     parser.add_argument("--chain-length", type=int, metavar="D",
                         help="generate shuffled modular chains with D updates per chain")
+    parser.add_argument("--distractor-length", type=int, metavar="L",
+                        help="updates in the distractor chain (default: D)")
     args = parser.parse_args()
+    if args.distractor_length is not None and args.chain_length is None:
+        parser.error("--distractor-length requires --chain-length")
     try:
         if args.chain_length is None:
             problems = generate_problems(args.pairs, args.seed)
         else:
-            problems = generate_chain_problems(args.pairs, args.seed, args.chain_length)
+            problems = generate_chain_problems(
+                args.pairs, args.seed, args.chain_length, args.distractor_length)
         for problem in problems:
             print(json.dumps(problem))
     except ValueError as error:
