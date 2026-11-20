@@ -75,3 +75,16 @@ Both members of a pair have the same givens, target labels, coefficients, and eq
 ## Run on Colab
 
 [budget_check.ipynb](budget_check.ipynb) runs the length-2 calibration pair through all three systems at 4k, 8k, and 16k tokens on an L4 GPU and summarizes accuracy, token use, cap hits, and time. It clones this repository, so push changes before running it. Results are saved in Google Drive under `MyDrive/small-multi-agents/results/budget_check/`, with a `b<budget>/` folder of per-system logs and two summary CSV files. Rerunning the cells after a disconnect resumes each run.
+
+## Run with vLLM
+
+`run_vllm.py` runs the same three systems with the same prompts, budgets, sampling settings, parsing, and log fields, but sends many problems to vLLM at once. It loads the model once for every requested system and budget and writes `OUT_DIR/b<budget>/<system>.jsonl`.
+
+```sh
+pip install -r requirements-vllm.txt
+python run_vllm.py chains.jsonl --out-dir runs/chains --budgets 4000 8000 16000 --resume
+```
+
+Each round of model calls across a batch of problems (`--batch-size`, default 64) goes to vLLM together: one call per problem for the single agent, three for the ensemble, and one per stage for the hierarchy. Results are saved after each batch, and `--resume` continues from the last saved batch. Batched problems share wall time, so each record's `seconds` is an equal share of its batch, alongside `batch_size`. Records carry `backend: "vllm"`, and resume refuses to mix backends in one log. vLLM samples differently from Transformers, so compare systems only within one backend. vLLM 0.33.0 needs its own torch and transformers versions, so install it in a separate environment from `requirements.txt`.
+
+[vllm_check.ipynb](vllm_check.ipynb) runs it on Colab against the existing Transformers pilot and budget-check results.
