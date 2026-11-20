@@ -7,6 +7,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+def use_hf_token():
+    """Pass the HF_TOKEN Colab secret to the runners, which inherit this environment."""
+    from google.colab import userdata
+
+    try:
+        os.environ["HF_TOKEN"] = userdata.get("HF_TOKEN")
+    except (userdata.SecretNotFoundError, userdata.NotebookAccessError):
+        print("No HF_TOKEN secret with notebook access; Hugging Face downloads stay unauthenticated.")
+    else:
+        print("Using the HF_TOKEN Colab secret.")
+
+
 def load_runs(folder):
     """Return one row per logged problem in folder/b<budget>/<system>.jsonl."""
     rows = []
