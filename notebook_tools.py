@@ -1,8 +1,29 @@
 """Helpers shared by the Colab notebooks."""
 
+import json
 import os
 import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
+
+
+def load_runs(folder):
+    """Return one row per logged problem in folder/b<budget>/<system>.jsonl."""
+    rows = []
+    for path in sorted(Path(folder).glob("b*/*.jsonl")):
+        for line in path.read_text().splitlines():
+            r = json.loads(line)
+            ran_out = r["status"] == "length_limit" or any(
+                a["status"] == "length_limit" for a in r.get("attempts", []))
+            rows.append({
+                "system": path.stem, "budget": r["budget"], "d": r.get("chain_length"),
+                "kind": r["kind"], "pair_id": r["pair_id"],
+                # Problems generated before the modulus field existed all used 97.
+                "modulus": r.get("modulus", 97), "status": r["status"], "correct": r["correct"],
+                "ran_out": ran_out, "failed_stage": r.get("failed_stage"),
+                "output": r["output_tokens"], "total": r["total_tokens"],
+            })
+    return rows
 
 
 def run_logged(args, log_path):

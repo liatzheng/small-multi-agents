@@ -94,3 +94,5 @@ Each round of model calls across a batch of problems (`--batch-size`, default 64
 [vllm_check.ipynb](vllm_check.ipynb) runs it on Colab against the existing Transformers pilot and budget-check results.
 
 [calibrate_depth.ipynb](calibrate_depth.ipynb) runs the single agent with vLLM on development chain problems at several depths, with every prompt holding the same number of equations, to choose the depths and middle budget for the main grid. It uses development seed 3001, so the main grid must use another seed.
+
+[calibrate_hard.ipynb](calibrate_hard.ipynb) is the next step: the same development problems with harder arithmetic in each update (`mod 997`, factors up to 99, offsets up to 199), at 8k and 16k tokens. It reads the `calibrate_depth` results from Drive and compares the two. Each step has its own notebook and Drive folder, and later steps read earlier steps' saved files.
