@@ -2,7 +2,7 @@
 
 from collections import Counter
 
-from run_single_agent import MODEL, REVISION, run_cli, solve
+from run_single_agent import run_cli, solve
 
 
 def majority(votes):
@@ -40,8 +40,7 @@ def solve_ensemble(problem, model, tokenizer, budget, seed):
         **problem, "prediction": prediction, "correct": correct, "status": status,
         "attempts": attempts, "budget": budget, "input_tokens": input_tokens,
         "output_tokens": output_tokens, "total_tokens": input_tokens + output_tokens,
-        "model": MODEL, "revision": REVISION, "device": model.device.type,
-        "dtype": str(model.dtype),
+        "device": model.device.type, "dtype": str(model.dtype),
     }
 
 

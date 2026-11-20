@@ -14,7 +14,9 @@ python run_single_agent.py problems.jsonl --budget 4000 --seed 42 --output resul
 
 Increase `--pairs` to generate a larger dataset. Each input line gets one fresh chat with the same system instruction. Only the problem text is sent to the model. The first seed selects problems and the second sets the sampling seed for each chat. The runner uses the original Qwen3-4B weights with thinking enabled and samples with temperature 0.6, top-p 0.95, and top-k 20. [Qwen model card](https://huggingface.co/Qwen/Qwen3-4B)
 
-Each output line includes the problem, answer key, final response, parsed prediction, correctness, and token counts. The budget covers the tokenized chat template and all generated tokens, including reasoning and the end-of-sequence token. The scorer reads an ordered pair such as `(7, 5)` on the final line or a single explicitly boxed pair at the end of the final response. It compares the two integers in order. The separate `format_ok` flag records whether the entire final response was just the requested pair. Unparseable and truncated responses count as incorrect and have separate status labels. The output file is created fresh and each result is flushed as it completes.
+Each output line includes the problem, answer key, final response, parsed prediction, correctness, and token counts. The budget covers the tokenized chat template and all generated tokens, including reasoning and the end-of-sequence token. The scorer reads an ordered pair such as `(7, 5)` on the final line or a single explicitly boxed pair at the end of the final response. It compares the two integers in order. The separate `format_ok` flag records whether the entire final response was just the requested pair. Unparseable and truncated responses count as incorrect and have separate status labels. The output file is created fresh and each result is flushed as it completes. Each record also stores the model, revision, starting seed, and wall-clock seconds for the problem.
+
+All three runners accept the same extra flags. `--resume` continues an existing output file from its first unfinished problem. It refuses a file whose records do not match the problem file, model, revision, budget, and seed, and it drops a final line cut off by an interrupted write. `--model` selects another Hugging Face model and requires `--revision` with a commit hash, so the weights stay pinned.
 
 The [two-problem sample log](results/single_agent_smoke.jsonl) was produced on Apple Silicon with the settings above.
 
@@ -59,3 +61,7 @@ python run_single_agent.py chains.jsonl --budget 4000 --seed 42 --output chain-r
 Each target chain has `--chain-length` updates of the form `next = (factor * previous + offset) mod 97`. The prompt shuffles the equations and interleaves a third chain of the same length as a distractor. The solver must find the two requested variables and return their values in order.
 
 Both members of a pair have the same givens, target labels, coefficients, and equation order. One variable reference changes. In the independent version the second chain starts from its own given value. In the dependent version it starts from the first chain’s final result. At length 2, both prompts contain six equations and four relevant updates. Their longest relevant paths have two and four updates, respectively. [Single-agent calibration](results/chain_calibration/README.md)
+
+## Run on Colab
+
+[budget_check.ipynb](budget_check.ipynb) runs the length-2 calibration pair through all three systems at 4k, 8k, and 16k tokens on an L4 GPU and summarizes accuracy, token use, cap hits, and time. It clones this repository, so push changes before running it. Logs are saved to Google Drive, and rerunning the cells after a disconnect resumes each run.

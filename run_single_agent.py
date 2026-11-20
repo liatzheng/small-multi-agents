@@ -3,6 +3,7 @@
 import argparse
 import json
 import re
+import time
 from pathlib import Path
 
 import torch
@@ -118,9 +119,23 @@ def solve(problem, model, tokenizer, budget, seed):
     return {
         **problem, **reply, "prediction": predicted, "status": status,
         "correct": status == "correct", "format_ok": format_ok,
-        "model": MODEL, "revision": REVISION,
         "device": model.device.type, "dtype": str(model.dtype),
     }
+
+
+def read_finished(path, problems, settings):
+    """Return the logged results to keep and the byte length they occupy."""
+    data = path.read_bytes()
+    # Every record ends with a newline, so text after the last one is an interrupted write.
+    keep = data.rfind(b"\n") + 1
+    finished = [json.loads(line) for line in data[:keep].splitlines()]
+    if len(finished) > len(problems):
+        raise ValueError(f"{path} has more results than the problem file")
+    for line_no, (result, problem) in enumerate(zip(finished, problems), start=1):
+        expected = {**problem, **settings}
+        if any(result.get(key) != value for key, value in expected.items()):
+            raise ValueError(f"{path}:{line_no}: result does not match this problem file and run settings")
+    return finished, keep
 
 
 def run_cli(description, solve_problem, default_output):
@@ -130,38 +145,65 @@ def run_cli(description, solve_problem, default_output):
     parser.add_argument("--output", type=Path, default=Path(default_output))
     parser.add_argument("--budget", type=int, default=4000, help="total tokens per problem")
     parser.add_argument("--seed", type=int, default=42, help="starting sampling seed for each problem")
+    parser.add_argument("--model", default=MODEL, help="Hugging Face model ID")
+    parser.add_argument("--revision", help=f"model commit (required unless --model is {MODEL})")
+    parser.add_argument("--resume", action="store_true",
+                        help="continue an existing --output file from the first unfinished problem")
     args = parser.parse_args()
     if not 1 <= args.budget <= 32768:
         parser.error("--budget must be between 1 and 32768")
+    if args.revision is None:
+        if args.model != MODEL:
+            parser.error("--revision is required with --model so the weights stay pinned")
+        args.revision = REVISION
     try:
         problems = read_problems(args.problems)
     except (ValueError, OSError) as error:
         parser.error(str(error))
+    settings = {"model": args.model, "revision": args.revision, "budget": args.budget, "seed": args.seed}
+    finished = []
     if args.output.exists():
-        parser.error(f"{args.output} already exists; choose a new --output file")
+        if not args.resume:
+            parser.error(f"{args.output} already exists; choose a new --output file or pass --resume")
+        try:
+            finished, keep = read_finished(args.output, problems, settings)
+        except ValueError as error:
+            parser.error(str(error))
+        with args.output.open("r+b") as stream:
+            stream.truncate(keep)
+        print(f"Resuming after {len(finished)} finished problems in {args.output}")
 
-    device = "cpu"
-    if torch.cuda.is_available():
-        device = "cuda"
-    elif torch.backends.mps.is_available():
-        device = "mps"
-    tokenizer = AutoTokenizer.from_pretrained(MODEL, revision=REVISION)
-    model = AutoModelForCausalLM.from_pretrained(
-        MODEL, revision=REVISION, torch_dtype="auto", use_safetensors=True,
-    ).to(device).eval()
+    results = list(finished)
+    remaining = problems[len(finished):]
+    if remaining:
+        device = "cpu"
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        tokenizer = AutoTokenizer.from_pretrained(args.model, revision=args.revision)
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model, revision=args.revision, torch_dtype="auto", use_safetensors=True,
+        ).to(device).eval()
+
+        with args.output.open("a" if args.resume else "x", encoding="utf-8") as log:
+            for problem in remaining:
+                start = time.perf_counter()
+                result = solve_problem(problem, model, tokenizer, args.budget, args.seed)
+                seconds = round(time.perf_counter() - start, 1)
+                result.update(model=args.model, revision=args.revision, seed=args.seed, seconds=seconds)
+                print(json.dumps(result), file=log, flush=True)
+                results.append(result)
 
     counts = {"independent": [0, 0], "dependent": [0, 0]}
-    with args.output.open("x", encoding="utf-8") as log:
-        for problem in problems:
-            result = solve_problem(problem, model, tokenizer, args.budget, args.seed)
-            print(json.dumps(result), file=log, flush=True)
-            count = counts[problem["kind"]]
-            count[0] += result["correct"]
-            count[1] += 1
+    for result in results:
+        count = counts[result["kind"]]
+        count[0] += result["correct"]
+        count[1] += 1
     for kind, (correct, total) in counts.items():
         if total:
             print(f"{kind}: {correct}/{total} correct")
-    print(f"Saved {len(problems)} responses to {args.output}")
+    print(f"Saved {len(results)} responses to {args.output}")
 
 
 def main():

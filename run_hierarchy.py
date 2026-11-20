@@ -3,7 +3,7 @@
 import json
 import re
 
-from run_single_agent import MODEL, REVISION, SYSTEM_PROMPT, generate_chat, parse_answer, run_cli
+from run_single_agent import SYSTEM_PROMPT, generate_chat, parse_answer, run_cli
 
 PLAN_PROMPT = (
     "Split the problem into two distinct subtasks, one per worker. Put any prerequisite "
@@ -88,7 +88,7 @@ def solve_hierarchy(problem, model, tokenizer, budget, seed):
         "correct": status == "correct", "status": status, "failed_stage": failed_stage,
         "calls": calls, "budget": budget, "input_tokens": input_tokens,
         "output_tokens": output_tokens, "total_tokens": input_tokens + output_tokens,
-        "model": MODEL, "revision": REVISION, "device": model.device.type, "dtype": str(model.dtype),
+        "device": model.device.type, "dtype": str(model.dtype),
     }
 
 
