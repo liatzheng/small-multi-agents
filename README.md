@@ -74,4 +74,4 @@ Both members of a pair have the same givens, target labels, coefficients, and eq
 
 ## Run on Colab
 
-[budget_check.ipynb](budget_check.ipynb) runs the length-2 calibration pair through all three systems at 4k, 8k, and 16k tokens on an L4 GPU and summarizes accuracy, token use, cap hits, and time. It clones this repository, so push changes before running it. Logs are saved to Google Drive, and rerunning the cells after a disconnect resumes each run.
+[budget_check.ipynb](budget_check.ipynb) runs the length-2 calibration pair through all three systems at 4k, 8k, and 16k tokens on an L4 GPU and summarizes accuracy, token use, cap hits, and time. It clones this repository, so push changes before running it. Results are saved in Google Drive under `MyDrive/small-multi-agents/results/budget_check/`, with a `b<budget>/` folder of per-system logs and two summary CSV files. Rerunning the cells after a disconnect resumes each run.
