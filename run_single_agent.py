@@ -123,6 +123,30 @@ def solve(problem, model, tokenizer, budget, seed):
     }
 
 
+def load_model(model_name=MODEL, revision=REVISION):
+    """Load one model, using native CUDA precision and streaming GPU weights."""
+    device = "cpu"
+    dtype = "auto"
+    options = {}
+    if torch.cuda.is_available():
+        device = "cuda"
+        # T4 uses FP16. A100 supports native BF16.
+        native_bf16 = torch.cuda.is_bf16_supported(including_emulation=False)
+        dtype = torch.bfloat16 if native_bf16 else torch.float16
+        # Accelerate loads weights onto the GPU without a full CPU copy.
+        options["device_map"] = {"": "cuda:0"}
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, revision=revision, torch_dtype=dtype, use_safetensors=True,
+        **options,
+    ).eval()
+    if device != "cuda":
+        model = model.to(device)
+    return model, tokenizer
+
+
 def read_finished(path, problems, settings):
     """Return the logged results to keep and the byte length they occupy."""
     data = path.read_bytes()
@@ -176,15 +200,7 @@ def run_cli(description, solve_problem, default_output):
     results = list(finished)
     remaining = problems[len(finished):]
     if remaining:
-        device = "cpu"
-        if torch.cuda.is_available():
-            device = "cuda"
-        elif torch.backends.mps.is_available():
-            device = "mps"
-        tokenizer = AutoTokenizer.from_pretrained(args.model, revision=args.revision)
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model, revision=args.revision, torch_dtype="auto", use_safetensors=True,
-        ).to(device).eval()
+        model, tokenizer = load_model(args.model, args.revision)
 
         with args.output.open("a" if args.resume else "x", encoding="utf-8") as log:
             for problem in remaining:

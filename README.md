@@ -1,5 +1,15 @@
 # Small multi-agent experiments
 
+## Run on Google Colab
+
+[Open the notebook in Colab](https://colab.research.google.com/github/liatzheng/small-multi-agents/blob/main/colab.ipynb)
+
+Select **Runtime → Change runtime type → T4 GPU or A100 GPU**, then run the notebook cells in order and approve Google Drive access. It loads Qwen3-4B once and runs all three systems on the same problems. T4 uses FP16 and A100 uses BF16, with full model weights. CUDA loading streams weights onto the GPU to reduce host RAM use. Colab's installed CUDA PyTorch is retained, and its version is recorded alongside the model revision, GPU, precision, seeds, and repository commit.
+
+The defaults reproduce the existing length-2 and length-4 calibration pairs with a 4,000-token cap per problem per system. Change `PAIRS_PER_LENGTH` to `10` and set a new `RUN_NAME` for a larger pilot. The budget includes every input prompt and generated token across the system's calls.
+
+The notebook saves each completed problem to `MyDrive/small-multi-agents/runs/<RUN_NAME>/`. Reconnect with the same GPU type and rerun the cells to resume saved progress. Use a new run name when changing the GPU, settings, or code version. It exports the three JSONL logs, accuracy and token-usage tables, status counts, problem inputs, and run configuration in that folder. Copy these outputs into `results/` when adding a finished run to GitHub. Model outputs can vary with GPU precision and software versions, so run all three systems in the same environment for each comparison.
+
 ## Run the single-agent baseline
 
 From the repository root, install the dependencies and generate one pair of problems. The first run downloads about 8 GB of model weights. The runner uses CUDA, Apple Silicon's MPS, or CPU, in that order.
