@@ -150,20 +150,19 @@ def main():
         print(f"=== {system}, budget {budget}", flush=True)
         results = list(finished)
         path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8") as log:
-            for start in range(len(finished), len(problems), args.batch_size):
-                batch = problems[start:start + args.batch_size]
-                began = time.perf_counter()
-                batch_results = run_batch(
-                    [SYSTEMS[system](problem, budget, args.seed) for problem in batch], chat,
-                )
-                # Batched problems share wall time, so each gets an equal share.
-                seconds = round((time.perf_counter() - began) / len(batch), 2)
-                for result in batch_results:
-                    result.update(settings, device="cuda", dtype=chat.dtype,
-                                  seconds=seconds, batch_size=len(batch))
-                    log_result(log, result)
-                    results.append(result)
+        for start in range(len(finished), len(problems), args.batch_size):
+            batch = problems[start:start + args.batch_size]
+            began = time.perf_counter()
+            batch_results = run_batch(
+                [SYSTEMS[system](problem, budget, args.seed) for problem in batch], chat,
+            )
+            # Batched problems share wall time, so each gets an equal share.
+            seconds = round((time.perf_counter() - began) / len(batch), 2)
+            for result in batch_results:
+                result.update(settings, device="cuda", dtype=chat.dtype,
+                              seconds=seconds, batch_size=len(batch))
+                log_result(path, result)
+                results.append(result)
         print_summary(results, path)
 
 

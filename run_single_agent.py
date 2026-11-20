@@ -202,8 +202,10 @@ def resume_log(path, problems, settings, resume):
     return finished
 
 
-def log_result(log, result):
-    print(json.dumps(result), file=log, flush=True)
+def log_result(path, result):
+    # Colab's Drive mount showed no new lines in files held open, so each record closes the file.
+    with path.open("a", encoding="utf-8") as log:
+        print(json.dumps(result), file=log)
     print(f"pair {result['pair_id']} {result['kind']}: {result['status']}, "
           f"{result['total_tokens']} tokens, {result['seconds']}s", flush=True)
 
@@ -256,13 +258,12 @@ def run_cli(description, solve_problem, default_output):
     if remaining:
         model, tokenizer = load_model(args.model, args.revision)
 
-        with args.output.open("a" if args.resume else "x", encoding="utf-8") as log:
-            for problem in remaining:
-                start = time.perf_counter()
-                result = solve_problem(problem, model, tokenizer, args.budget, args.seed)
-                result.update(settings, seconds=round(time.perf_counter() - start, 1))
-                log_result(log, result)
-                results.append(result)
+        for problem in remaining:
+            start = time.perf_counter()
+            result = solve_problem(problem, model, tokenizer, args.budget, args.seed)
+            result.update(settings, seconds=round(time.perf_counter() - start, 1))
+            log_result(args.output, result)
+            results.append(result)
     print_summary(results, args.output)
 
 
