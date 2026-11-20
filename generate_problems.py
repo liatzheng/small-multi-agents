@@ -42,14 +42,19 @@ def generate_problems(num_pairs=1, seed=None):
             }
 
 
-def generate_chain_problems(num_pairs, seed, length, distractor_length=None):
+def generate_chain_problems(num_pairs, seed, length, distractor_length=None,
+                            modulus=97, max_factor=5, max_offset=19):
     """Generate matched pairs with two target chains and one distractor chain."""
     if distractor_length is None:
         distractor_length = length
     if num_pairs < 1 or length < 1 or distractor_length < 1:
         raise ValueError("--pairs, --chain-length, and --distractor-length must be positive")
+    # A prime modulus makes every update invertible, which keeps the two variants' answers distinct.
+    if modulus < 3 or any(modulus % k == 0 for k in range(2, int(modulus ** 0.5) + 1)):
+        raise ValueError("--modulus must be a prime of at least 3")
+    if not 2 <= max_factor < modulus or not 1 <= max_offset < modulus:
+        raise ValueError("--max-factor must be 2 to modulus-1 and --max-offset 1 to modulus-1")
     rng = random.Random(seed)
-    modulus = 97
     for pair_id in range(1, num_pairs + 1):
         # Random labels and shuffled equations require tracing inputs to targets.
         labels = [f"v{i:02d}" for i in range(2 * (length + 1) + distractor_length + 1)]
@@ -60,7 +65,7 @@ def generate_chain_problems(num_pairs, seed, length, distractor_length=None):
         rules = {}
         for chain in chains:
             for source, dest in zip(chain, chain[1:]):
-                rules[dest] = (source, rng.randint(2, 5), rng.randint(1, 19))
+                rules[dest] = (source, rng.randint(2, max_factor), rng.randint(1, max_offset))
         order = list(rules)
         rng.shuffle(order)
         first, second, _ = chains
@@ -93,7 +98,9 @@ def generate_chain_problems(num_pairs, seed, length, distractor_length=None):
                 + f"\nReturn ({first[-1]}, {second[-1]}) in that order."
             )
             yield {"pair_id": pair_id, "kind": kind, "chain_length": length,
-                   "distractor_length": distractor_length, "prompt": prompt, "answer": [a, b]}
+                   "distractor_length": distractor_length, "modulus": modulus,
+                   "max_factor": max_factor, "max_offset": max_offset,
+                   "prompt": prompt, "answer": [a, b]}
 
 
 def main():
@@ -104,15 +111,20 @@ def main():
                         help="generate shuffled modular chains with D updates per chain")
     parser.add_argument("--distractor-length", type=int, metavar="L",
                         help="updates in the distractor chain (default: D)")
+    parser.add_argument("--modulus", type=int, default=97, help="prime modulus for chain updates")
+    parser.add_argument("--max-factor", type=int, default=5, help="largest update factor (smallest is 2)")
+    parser.add_argument("--max-offset", type=int, default=19, help="largest update offset (smallest is 1)")
     args = parser.parse_args()
-    if args.distractor_length is not None and args.chain_length is None:
-        parser.error("--distractor-length requires --chain-length")
+    chain_options = (args.distractor_length, args.modulus != 97, args.max_factor != 5, args.max_offset != 19)
+    if args.chain_length is None and any(chain_options):
+        parser.error("the chain options require --chain-length")
     try:
         if args.chain_length is None:
             problems = generate_problems(args.pairs, args.seed)
         else:
             problems = generate_chain_problems(
-                args.pairs, args.seed, args.chain_length, args.distractor_length)
+                args.pairs, args.seed, args.chain_length, args.distractor_length,
+                args.modulus, args.max_factor, args.max_offset)
         for problem in problems:
             print(json.dumps(problem))
     except ValueError as error:
