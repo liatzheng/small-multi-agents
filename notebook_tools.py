@@ -49,6 +49,7 @@ def run_logged(args, log_path):
         with open(log_path, "a", encoding="utf-8") as log:
             log.write(text)
 
+    Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
     header = f"=== {' '.join(args)}\n=== started {stamp}\n"
     print(header, end="")
