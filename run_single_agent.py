@@ -172,6 +172,12 @@ def load_model(model_name=MODEL, revision=REVISION):
     return model, tokenizer
 
 
+# Logs written before these fields existed all used these settings.
+LEGACY_SETTINGS = {
+    "backend": "transformers", "thinking": True, "plan_prompt": "default", "thinking_stages": [],
+}
+
+
 def read_finished(path, problems, settings):
     """Return the logged results to keep and the byte length they occupy."""
     data = path.read_bytes()
@@ -182,9 +188,7 @@ def read_finished(path, problems, settings):
         raise ValueError(f"{path} has more results than the problem file")
     for line_no, (result, problem) in enumerate(zip(finished, problems), start=1):
         expected = {**problem, **settings}
-        # Logs written before the backend and thinking fields existed all came from
-        # Transformers with thinking on.
-        actual = {"backend": "transformers", "thinking": True, **result}
+        actual = {**LEGACY_SETTINGS, **result}
         if any(actual.get(key) != value for key, value in expected.items()):
             raise ValueError(f"{path}:{line_no}: result does not match this problem file and run settings")
     return finished, keep

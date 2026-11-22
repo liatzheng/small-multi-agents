@@ -1,11 +1,12 @@
 """Run the single agent, ensemble, and hierarchy with batched vLLM generation."""
 
 import argparse
+import functools
 import time
 from pathlib import Path
 
 from run_ensemble import solve_ensemble_steps
-from run_hierarchy import solve_hierarchy_steps
+from run_hierarchy import PLAN_PROMPTS, STAGES, solve_hierarchy_steps
 from run_single_agent import (
     MODEL, REVISION, final_answer, log_result, print_summary, read_problems, resume_log, solve_steps,
 )
@@ -40,10 +41,10 @@ class VllmChat:
         print(f"vllm {vllm.__version__}, torch {torch.__version__}, "
               f"{torch.cuda.get_device_name()}, {self.dtype}", flush=True)
 
-    def prompt_ids(self, messages):
+    def prompt_ids(self, messages, thinking):
         # Rendering to text first gives the same IDs as tokenize=True across Transformers versions.
         text = self.tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True, enable_thinking=self.thinking,
+            messages, tokenize=False, add_generation_prompt=True, enable_thinking=thinking,
         )
         return self.tokenizer(text, add_special_tokens=False)["input_ids"]
 
@@ -51,7 +52,8 @@ class VllmChat:
         replies = [None] * len(requests)
         prompts, params, sent = [], [], []
         for i, request in enumerate(requests):
-            ids = self.prompt_ids(request["messages"])
+            # A request can turn thinking on for itself, as a hierarchy stage does.
+            ids = self.prompt_ids(request["messages"], request.get("thinking", self.thinking))
             cap, seed = request["cap"], request["seed"]
             if len(ids) >= cap:
                 replies[i] = {
@@ -112,6 +114,10 @@ def main():
     parser.add_argument("--revision", help=f"model commit (required unless --model is {MODEL})")
     parser.add_argument("--no-thinking", dest="thinking", action="store_false",
                         help="render prompts with Qwen3 thinking mode off for every call")
+    parser.add_argument("--plan-prompt", choices=PLAN_PROMPTS, default="default",
+                        help="hierarchy planner instructions")
+    parser.add_argument("--thinking-stages", nargs="+", choices=STAGES, default=[],
+                        help="hierarchy stages that think even with --no-thinking")
     parser.add_argument("--batch-size", type=int, default=64,
                         help="problems per batch; results are saved after each batch")
     parser.add_argument("--resume", action="store_true",
@@ -121,6 +127,10 @@ def main():
         parser.error("--budgets must be between 1 and 32768")
     if args.batch_size < 1:
         parser.error("--batch-size must be positive")
+    if args.thinking_stages and args.thinking:
+        parser.error("--thinking-stages only applies with --no-thinking")
+    if (args.thinking_stages or args.plan_prompt != "default") and "hierarchy" not in args.systems:
+        parser.error("--plan-prompt and --thinking-stages need --systems hierarchy")
     if args.revision is None:
         if args.model != MODEL:
             parser.error("--revision is required with --model so the weights stay pinned")
@@ -138,6 +148,9 @@ def main():
                 "model": args.model, "revision": args.revision, "budget": budget,
                 "seed": args.seed, "backend": "vllm", "thinking": args.thinking,
             }
+            if system == "hierarchy":
+                settings.update(plan_prompt=args.plan_prompt,
+                                thinking_stages=sorted(args.thinking_stages, key=STAGES.index))
             try:
                 finished = resume_log(path, problems, settings, args.resume)
             except ValueError as error:
@@ -154,11 +167,15 @@ def main():
         print(f"=== {system}, budget {budget}", flush=True)
         results = list(finished)
         path.parent.mkdir(parents=True, exist_ok=True)
+        solve = SYSTEMS[system]
+        if system == "hierarchy":
+            solve = functools.partial(solve, plan_prompt=args.plan_prompt,
+                                      thinking_stages=set(args.thinking_stages))
         for start in range(len(finished), len(problems), args.batch_size):
             batch = problems[start:start + args.batch_size]
             began = time.perf_counter()
             batch_results = run_batch(
-                [SYSTEMS[system](problem, budget, args.seed) for problem in batch], chat,
+                [solve(problem, budget, args.seed) for problem in batch], chat,
             )
             # Batched problems share wall time, so each gets an equal share.
             seconds = round((time.perf_counter() - began) / len(batch), 2)

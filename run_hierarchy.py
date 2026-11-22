@@ -11,6 +11,20 @@ PLAN_PROMPT = (
     'with "first" and "second" (short assignment strings) and "pass_first" (a boolean). '
     "Set pass_first to true only if worker 2 needs worker 1's result."
 )
+# Without thinking, the default planner mostly copied single equations instead of splitting the
+# work, so this variant spells out how to trace each requested variable.
+TRACE_PLAN_PROMPT = (
+    "Split the problem into two subtasks, one per worker, without solving them. For each "
+    "requested variable, trace back through the equations to the given values it depends on. "
+    "Give worker 1 the first requested variable and worker 2 the second. In each assignment, "
+    "name the requested variable and list the equations to evaluate, in order. If the second "
+    "requested variable depends on the first, worker 2's list starts after the first variable. "
+    'Return only a JSON object with "first" and "second" (the assignment strings) and '
+    '"pass_first" (a boolean). Set pass_first to true only if the second requested variable '
+    "depends on the first."
+)
+PLAN_PROMPTS = {"default": PLAN_PROMPT, "trace": TRACE_PLAN_PROMPT}
+STAGES = ("planner", "worker_1", "worker_2", "merge")
 WORK_PROMPT = (
     "Solve your assigned subtask. Your final response is a report to the orchestrator. "
     "Give the requested variable and its value in one short line."
@@ -39,7 +53,8 @@ def parse_plan(text):
     return plan
 
 
-def solve_hierarchy_steps(problem, budget, seed):
+def solve_hierarchy_steps(problem, budget, seed, plan_prompt="default", thinking_stages=()):
+    """thinking_stages turns thinking on for those stages; the others use the backend's mode."""
     calls = []
     prompt = problem["prompt"]
 
@@ -51,7 +66,10 @@ def solve_hierarchy_steps(problem, budget, seed):
             {"role": "system", "content": instruction},
             {"role": "user", "content": content},
         ]
-        (reply,) = yield [{"messages": messages, "cap": cap, "seed": seed + index}]
+        request = {"messages": messages, "cap": cap, "seed": seed + index}
+        if stage in thinking_stages:
+            request["thinking"] = True
+        (reply,) = yield [request]
         calls.append({"stage": stage, "messages": messages, **reply})
         if reply["stop_reason"] != "stop":
             raise ProtocolFailure(stage, reply["stop_reason"])
@@ -61,7 +79,7 @@ def solve_hierarchy_steps(problem, budget, seed):
 
     answer, prediction, format_ok, failed_stage = "", None, False, None
     try:
-        plan = parse_plan((yield from call("planner", PLAN_PROMPT, prompt)))
+        plan = parse_plan((yield from call("planner", PLAN_PROMPTS[plan_prompt], prompt)))
         first = yield from call("worker_1", WORK_PROMPT, f"Problem:\n{prompt}\n\nAssignment:\n{plan['first']}")
         task = f"Problem:\n{prompt}\n\nAssignment:\n{plan['second']}"
         if plan["pass_first"]:
