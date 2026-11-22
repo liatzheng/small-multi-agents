@@ -182,8 +182,9 @@ def read_finished(path, problems, settings):
         raise ValueError(f"{path} has more results than the problem file")
     for line_no, (result, problem) in enumerate(zip(finished, problems), start=1):
         expected = {**problem, **settings}
-        # Logs written before the backend field existed all came from Transformers.
-        actual = {"backend": "transformers", **result}
+        # Logs written before the backend and thinking fields existed all came from
+        # Transformers with thinking on.
+        actual = {"backend": "transformers", "thinking": True, **result}
         if any(actual.get(key) != value for key, value in expected.items()):
             raise ValueError(f"{path}:{line_no}: result does not match this problem file and run settings")
     return finished, keep

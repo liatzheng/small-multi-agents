@@ -28,7 +28,8 @@ def load_runs(folder):
             ran_out = r["status"] == "length_limit" or any(
                 a["status"] == "length_limit" for a in r.get("attempts", []))
             rows.append({
-                "system": path.stem, "budget": r["budget"], "d": r.get("chain_length"),
+                "system": path.stem, "model": r.get("model"), "thinking": r.get("thinking", True),
+                "budget": r["budget"], "d": r.get("chain_length"),
                 "kind": r["kind"], "pair_id": r["pair_id"],
                 # Problems generated before the modulus field existed all used 97.
                 "modulus": r.get("modulus", 97), "status": r["status"], "correct": r["correct"],

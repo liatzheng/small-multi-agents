@@ -20,7 +20,7 @@ SYSTEMS = {
 class VllmChat:
     """Answer batches of chat requests under the same budget rules as generate_chat."""
 
-    def __init__(self, model_name, revision, max_model_len):
+    def __init__(self, model_name, revision, max_model_len, thinking=True):
         import torch
         import vllm
         from transformers import AutoTokenizer, GenerationConfig
@@ -28,6 +28,7 @@ class VllmChat:
         # T4 has no native BF16, so it runs FP16 as load_model does.
         native_bf16 = torch.cuda.is_bf16_supported(including_emulation=False)
         self.dtype = "bfloat16" if native_bf16 else "float16"
+        self.thinking = thinking
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
         eos = GenerationConfig.from_pretrained(model_name, revision=revision).eos_token_id
         self.eos = eos if isinstance(eos, list) else [eos]
@@ -42,7 +43,7 @@ class VllmChat:
     def prompt_ids(self, messages):
         # Rendering to text first gives the same IDs as tokenize=True across Transformers versions.
         text = self.tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True, enable_thinking=True,
+            messages, tokenize=False, add_generation_prompt=True, enable_thinking=self.thinking,
         )
         return self.tokenizer(text, add_special_tokens=False)["input_ids"]
 
@@ -109,6 +110,8 @@ def main():
     parser.add_argument("--seed", type=int, default=42, help="starting sampling seed for each problem")
     parser.add_argument("--model", default=MODEL, help="Hugging Face model ID")
     parser.add_argument("--revision", help=f"model commit (required unless --model is {MODEL})")
+    parser.add_argument("--no-thinking", dest="thinking", action="store_false",
+                        help="render prompts with Qwen3 thinking mode off for every call")
     parser.add_argument("--batch-size", type=int, default=64,
                         help="problems per batch; results are saved after each batch")
     parser.add_argument("--resume", action="store_true",
@@ -133,7 +136,7 @@ def main():
             path = args.out_dir / f"b{budget}" / f"{system}.jsonl"
             settings = {
                 "model": args.model, "revision": args.revision, "budget": budget,
-                "seed": args.seed, "backend": "vllm",
+                "seed": args.seed, "backend": "vllm", "thinking": args.thinking,
             }
             try:
                 finished = resume_log(path, problems, settings, args.resume)
@@ -145,7 +148,8 @@ def main():
         return
 
     # A prompt plus its output never exceeds the problem budget.
-    chat = VllmChat(args.model, args.revision, max_model_len=max(args.budgets))
+    chat = VllmChat(args.model, args.revision, max_model_len=max(args.budgets),
+                    thinking=args.thinking)
     for system, budget, path, settings, finished in jobs:
         print(f"=== {system}, budget {budget}", flush=True)
         results = list(finished)
