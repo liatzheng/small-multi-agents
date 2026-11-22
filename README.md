@@ -100,3 +100,5 @@ Each round of model calls across a batch of problems (`--batch-size`, default 64
 [find_failures.ipynb](find_failures.ipynb) looks for settings where the single agent makes mistakes, since it solved nearly every `calibrate_hard` problem at 16k. It runs the single agent at 8k and 16k under four options, each changing one thing: thinking off, Qwen3-1.7B, `mod 9973` arithmetic, or 28 equations per prompt.
 
 [dev_systems.ipynb](dev_systems.ipynb) runs the single agent, ensemble, and hierarchy with thinking off on the `find_failures` `no_thinking` problems at 12k and 16k, where the single agent fails by wrong arithmetic and every system has room for a full solve. It adds tables for ensemble attempts and hierarchy stages.
+
+[dev_planner.ipynb](dev_planner.ipynb) reruns only the hierarchy on those problems at 16k with two planner fixes, since the default planner without thinking rarely split the work: a planner that thinks while the other stages do not, and the `trace` planner prompt. It compares both with the `dev_systems` runs and scores each planner's plans.
