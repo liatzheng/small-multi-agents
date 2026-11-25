@@ -1,0 +1,639 @@
+=== hierarchy_tree_reconstruct, budget 8000, 120 problems
+4 stores group 2 total: correct, 1223 tokens, 11.6s
+4 stores group 1 total: correct, 1268 tokens, 11.58s
+4 stores group 3 total: correct, 1325 tokens, 12.88s
+4 stores group 3 average: wrong_answer, 1517 tokens, 12.95s
+4 stores group 4 total: correct, 1278 tokens, 6.17s
+4 stores group 2 average: wrong_answer, 1714 tokens, 18.67s
+4 stores group 2 customer_totals: correct, 1946 tokens, 19.08s
+4 stores group 1 average: correct, 1762 tokens, 20.28s
+4 stores group 4 average: correct, 1654 tokens, 8.73s
+4 stores group 1 customer_totals: correct, 2087 tokens, 23.07s
+4 stores group 5 total: correct, 1225 tokens, 6.04s
+4 stores group 6 total: correct, 1082 tokens, 3.64s
+4 stores group 3 customer_totals: correct, 1909 tokens, 19.57s
+4 stores group 4 customer_totals: wrong_answer, 2040 tokens, 19.47s
+Retrying in 1s after RemoteDisconnected('Remote end closed connection without response')
+4 stores group 8 total: correct, 1242 tokens, 6.68s
+Retrying in 1s after URLError(BrokenPipeError(32, 'Broken pipe'))
+4 stores group 7 average: wrong_answer, 1380 tokens, 16.33s
+4 stores group 5 customer_totals: wrong_answer, 2241 tokens, 26.16s
+4 stores group 7 total: correct, 1222 tokens, 12.87s
+4 stores group 9 total: correct, 1245 tokens, 5.23s
+4 stores group 8 average: wrong_answer, 1689 tokens, 13.86s
+4 stores group 7 customer_totals: wrong_answer, 2083 tokens, 22.37s
+4 stores group 8 customer_totals: wrong_answer, 2014 tokens, 15.61s
+4 stores group 9 average: wrong_answer, 1561 tokens, 10.67s
+4 stores group 10 total: correct, 1218 tokens, 6.51s
+4 stores group 9 customer_totals: correct, 1878 tokens, 13.54s
+4 stores group 10 average: correct, 1577 tokens, 11.64s
+8 stores group 1 total: wrong_answer, 2794 tokens, 9.98s
+8 stores group 2 total: correct, 2688 tokens, 8.67s
+8 stores group 1 average: correct, 3628 tokens, 19.18s
+8 stores group 3 total: correct, 2722 tokens, 8.81s
+8 stores group 3 average: correct, 3863 tokens, 19.01s
+8 stores group 2 customer_totals: correct, 5098 tokens, 35.88s
+8 stores group 4 total: correct, 2809 tokens, 8.59s
+8 stores group 4 average: wrong_answer, 3408 tokens, 13.89s
+8 stores group 3 customer_totals: wrong_answer, 5104 tokens, 37.8s
+8 stores group 5 total: wrong_answer, 2796 tokens, 8.41s
+8 stores group 4 customer_totals: wrong_answer, 4811 tokens, 29.88s
+8 stores group 5 average: wrong_answer, 3517 tokens, 17.32s
+8 stores group 6 total: correct, 2805 tokens, 9.6s
+8 stores group 5 customer_totals: wrong_answer, 4736 tokens, 32.05s
+8 stores group 6 average: correct, 3389 tokens, 15.18s
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+4 stores group 5 average: wrong_answer, 1712 tokens, 12.99s
+4 stores group 6 average: correct, 1881 tokens, 18.43s
+4 stores group 6 customer_totals: wrong_answer, 2126 tokens, 22.41s
+8 stores group 8 total: wrong_answer, 2840 tokens, 9.99s
+8 stores group 7 average: wrong_answer, 3723 tokens, 20.69s
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+8 stores group 7 customer_totals: wrong_answer, 4730 tokens, 31.09s
+8 stores group 8 average: wrong_answer, 3504 tokens, 18.39s
+8 stores group 9 total: correct, 2823 tokens, 8.11s
+4 stores group 10 customer_totals: wrong_answer, 2001 tokens, 17.57s
+8 stores group 2 average: correct, 3581 tokens, 15.27s
+8 stores group 8 customer_totals: wrong_answer, 4793 tokens, 27.74s
+8 stores group 10 total: wrong_answer, 2805 tokens, 7.7s
+8 stores group 9 average: correct, 3622 tokens, 15.68s
+8 stores group 1 customer_totals: wrong_answer, 4845 tokens, 27.02s
+16 stores group 1 total: wrong_answer, 5501 tokens, 9.32s
+8 stores group 10 average: correct, 3630 tokens, 13.82s
+16 stores group 1 customer_totals: wrong_answer, 7639 tokens, 15.01s
+16 stores group 1 average: correct, 7039 tokens, 17.55s
+8 stores group 9 customer_totals: correct, 4750 tokens, 31.48s
+16 stores group 2 total: correct, 5515 tokens, 11.05s
+16 stores group 2 average: correct, 6899 tokens, 19.11s
+16 stores group 3 total: correct, 5445 tokens, 12.56s
+8 stores group 10 customer_totals: wrong_answer, 5185 tokens, 39.7s
+16 stores group 3 average: wrong_answer, 6276 tokens, 18.2s
+16 stores group 2 customer_totals: wrong_answer, 7652 tokens, 17.33s
+16 stores group 3 customer_totals: wrong_answer, 7650 tokens, 15.83s
+16 stores group 4 total: wrong_answer, 5414 tokens, 10.19s
+16 stores group 4 average: wrong_answer, 6881 tokens, 19.45s
+16 stores group 5 total: correct, 5499 tokens, 10.99s
+16 stores group 4 customer_totals: wrong_answer, 7672 tokens, 15.36s
+16 stores group 5 average: correct, 7160 tokens, 17.29s
+16 stores group 5 customer_totals: wrong_answer, 7676 tokens, 15.19s
+16 stores group 6 total: wrong_answer, 5424 tokens, 9.8s
+16 stores group 7 total: correct, 5259 tokens, 9.72s
+16 stores group 6 average: wrong_answer, 6567 tokens, 18.86s
+16 stores group 6 customer_totals: wrong_answer, 7812 tokens, 17.98s
+16 stores group 8 total: correct, 5595 tokens, 9.89s
+16 stores group 7 average: correct, 7341 tokens, 19.26s
+16 stores group 7 customer_totals: wrong_answer, 7640 tokens, 15.83s
+16 stores group 9 total: correct, 5415 tokens, 10.45s
+16 stores group 8 customer_totals: wrong_answer, 7664 tokens, 15.01s
+16 stores group 8 average: wrong_answer, 7083 tokens, 19.47s
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after TimeoutError('The read operation timed out')
+Retrying in 1s after URLError(TimeoutError('_ssl.c:1015: The handshake operation timed out'))
+Retrying in 1s after TimeoutError('The read operation timed out')
+16 stores group 10 total: correct, 5302 tokens, 9.78s
+16 stores group 9 customer_totals: wrong_answer, 7663 tokens, 14.9s
+Traceback (most recent call last):
+  File "/Users/natalia_mac/small-multi-agents/run_ledger.py", line 424, in <module>
+    main()
+    ~~~~^^
+  File "/Users/natalia_mac/small-multi-agents/run_ledger.py", line 410, in main
+    result = {**future.result(), **settings}
+                ~~~~~~~~~~~~~^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/natalia_mac/small-multi-agents/run_wide.py", line 338, in run_problem
+    replies = chat.generate(requests)
+  File "/Users/natalia_mac/small-multi-agents/run_wide.py", line 65, in generate
+    return list(self.pool.map(self.call, requests))
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/natalia_mac/small-multi-agents/run_wide.py", line 80, in call
+    data, seconds = self.post({
+                    ~~~~~~~~~^^
+        "model": model, "messages": request["messages"], "max_tokens": max_tokens,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+                     "require_parameters": True},
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    })
+    ^^
+  File "/Users/natalia_mac/small-multi-agents/run_wide.py", line 106, in post
+    with urllib.request.urlopen(request, timeout=600) as response:
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/urllib/request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/urllib/request.py", line 489, in open
+    response = self._open(req, data)
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/urllib/request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/urllib/request.py", line 466, in _call_chain
+    result = func(*args)
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/urllib/request.py", line 1367, in https_open
+    return self.do_open(http.client.HTTPSConnection, req,
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        context=self._context)
+                        ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/urllib/request.py", line 1323, in do_open
+    r = h.getresponse()
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/http/client.py", line 1430, in getresponse
+    response.begin()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/http/client.py", line 331, in begin
+    version, status, reason = self._read_status()
+                              ~~~~~~~~~~~~~~~~~^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/http/client.py", line 292, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/socket.py", line 719, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/ssl.py", line 1304, in recv_into
+    return self.read(nbytes, buffer)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/natalia_mac/.local/share/uv/python/cpython-3.13.9-macos-aarch64-none/lib/python3.13/ssl.py", line 1138, in read
+    return self._sslobj.read(len, buffer)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+OSError: [Errno 65] No route to host
+Resuming after 85 finished problems in results/ledger_calibrate/gemma-3-12b-it/b8000/hierarchy_tree_reconstruct.jsonl
+=== hierarchy_tree_reconstruct, budget 8000, 35 problems
+32 stores group 1 total: wrong_answer, 6723 tokens, 4.3s
+8 stores group 7 total: correct, 2751 tokens, 10.63s
+32 stores group 2 total: wrong_answer, 6721 tokens, 5.01s
+16 stores group 9 average: correct, 6971 tokens, 19.63s
+16 stores group 10 customer_totals: wrong_answer, 7640 tokens, 16.85s
+32 stores group 3 total: wrong_answer, 6723 tokens, 4.85s
+32 stores group 1 average: wrong_answer, 5340 tokens, 21.29s
+16 stores group 10 average: correct, 7198 tokens, 27.42s
+8 stores group 6 customer_totals: wrong_answer, 4691 tokens, 31.03s
+32 stores group 1 customer_totals: wrong_answer, 4680 tokens, 27.24s
+32 stores group 2 average: wrong_answer, 4727 tokens, 19.26s
+32 stores group 4 total: wrong_answer, 6748 tokens, 6.12s
+32 stores group 4 average: wrong_answer, 6586 tokens, 9.45s
+32 stores group 5 total: wrong_answer, 6721 tokens, 5.69s
+32 stores group 3 average: wrong_answer, 6715 tokens, 19.11s
+32 stores group 2 customer_totals: wrong_answer, 4604 tokens, 26.68s
+32 stores group 6 total: wrong_answer, 6717 tokens, 4.96s
+32 stores group 3 customer_totals: wrong_answer, 4551 tokens, 22.52s
+32 stores group 7 total: wrong_answer, 6704 tokens, 4.4s
+32 stores group 5 customer_totals: wrong_answer, 3823 tokens, 18.34s
+32 stores group 8 total: wrong_answer, 6729 tokens, 6.1s
+32 stores group 5 average: wrong_answer, 6890 tokens, 22.43s
+32 stores group 4 customer_totals: wrong_answer, 4771 tokens, 27.08s
+32 stores group 6 average: wrong_answer, 6366 tokens, 22.48s
+32 stores group 9 total: wrong_answer, 6723 tokens, 5.2s
+32 stores group 6 customer_totals: wrong_answer, 4456 tokens, 22.34s
+32 stores group 7 average: wrong_answer, 4246 tokens, 20.52s
+32 stores group 10 total: wrong_answer, 6717 tokens, 4.63s
+32 stores group 7 customer_totals: wrong_answer, 4637 tokens, 22.58s
+32 stores group 8 average: wrong_answer, 5217 tokens, 18.14s
+32 stores group 8 customer_totals: wrong_answer, 4317 tokens, 20.61s
+32 stores group 9 average: wrong_answer, 5254 tokens, 20.1s
+32 stores group 10 average: wrong_answer, 4204 tokens, 19.92s
+32 stores group 10 customer_totals: wrong_answer, 4367 tokens, 22.24s
+32 stores group 9 customer_totals: wrong_answer, 4589 tokens, 25.51s
+8 stores, customer_totals: 0/1 correct, target accuracy 0.75, 4691 tokens, 997 critical output tokens
+8 stores, total: 1/1 correct, target accuracy 1.00, 2751 tokens, 288 critical output tokens
+16 stores, average: 2/2 correct, target accuracy 1.00, 7084 tokens, 738 critical output tokens
+16 stores, customer_totals: 0/1 correct, target accuracy 0.00, 7640 tokens, 525 critical output tokens
+32 stores, average: 0/10 correct, target accuracy 0.00, 5554 tokens, 581 critical output tokens
+32 stores, customer_totals: 0/10 correct, target accuracy 0.00, 4480 tokens, 743 critical output tokens
+32 stores, total: 0/10 correct, target accuracy 0.00, 6723 tokens, 117 critical output tokens
+Saved 35 results to results/ledger_calibrate/gemma-3-12b-it/b8000/hierarchy_tree_reconstruct.jsonl
+=== hierarchy_tree, budget 8000, 120 problems
+4 stores group 1 total: correct, 1888 tokens, 9.83s
+4 stores group 3 total: wrong_answer, 1934 tokens, 9.76s
+4 stores group 2 total: correct, 1930 tokens, 10.67s
+4 stores group 1 average: correct, 2128 tokens, 11.75s
+4 stores group 3 average: wrong_answer, 2522 tokens, 14.87s
+4 stores group 2 average: correct, 2800 tokens, 15.09s
+4 stores group 4 total: correct, 1852 tokens, 8.79s
+4 stores group 5 total: correct, 2311 tokens, 10.49s
+4 stores group 1 customer_totals: correct, 4003 tokens, 28.9s
+4 stores group 4 average: wrong_answer, 3113 tokens, 18.74s
+4 stores group 5 average: correct, 3314 tokens, 15.66s
+4 stores group 2 customer_totals: wrong_answer, 4048 tokens, 33.18s
+4 stores group 6 total: correct, 2124 tokens, 9.37s
+4 stores group 3 customer_totals: correct, 3488 tokens, 25.16s
+4 stores group 5 customer_totals: wrong_answer, 3116 tokens, 18.92s
+4 stores group 4 customer_totals: correct, 4510 tokens, 27.72s
+4 stores group 7 total: correct, 2098 tokens, 9.57s
+4 stores group 8 total: correct, 1784 tokens, 8.46s
+4 stores group 7 average: wrong_answer, 2304 tokens, 12.81s
+4 stores group 8 average: wrong_answer, 1806 tokens, 10.35s
+4 stores group 9 total: correct, 1891 tokens, 8.67s
+4 stores group 6 average: correct, 3535 tokens, 21.93s
+4 stores group 6 customer_totals: wrong_answer, 3316 tokens, 25.3s
+4 stores group 10 total: correct, 1861 tokens, 9.08s
+4 stores group 7 customer_totals: wrong_answer, 3139 tokens, 22.7s
+4 stores group 9 average: wrong_answer, 2555 tokens, 15.03s
+4 stores group 10 average: wrong_answer, 1970 tokens, 9.46s
+4 stores group 9 customer_totals: wrong_answer, 3227 tokens, 20.39s
+8 stores group 1 total: correct, 3840 tokens, 12.52s
+4 stores group 10 customer_totals: wrong_answer, 3619 tokens, 19.99s
+8 stores group 2 total: wrong_answer, 4296 tokens, 14.48s
+8 stores group 3 total: correct, 3698 tokens, 10.54s
+4 stores group 8 customer_totals: correct, 4047 tokens, 40.08s
+8 stores group 2 average: wrong_answer, 4500 tokens, 20.94s
+8 stores group 1 average: wrong_answer, 5010 tokens, 24.11s
+8 stores group 4 total: wrong_answer, 3598 tokens, 14.83s
+8 stores group 5 total: wrong_answer, 3857 tokens, 12.86s
+8 stores group 1 customer_totals: wrong_answer, 6583 tokens, 41.65s
+8 stores group 4 average: wrong_answer, 5713 tokens, 26.59s
+8 stores group 5 average: wrong_answer, 3712 tokens, 14.02s
+8 stores group 2 customer_totals: wrong_answer, 7177 tokens, 48.06s
+8 stores group 6 total: wrong_answer, 3915 tokens, 15.18s
+8 stores group 3 average: wrong_answer, 6193 tokens, 44.28s
+8 stores group 4 customer_totals: wrong_answer, 6587 tokens, 37.74s
+8 stores group 3 customer_totals: wrong_answer, 7664 tokens, 47.74s
+8 stores group 6 average: wrong_answer, 4235 tokens, 20.48s
+8 stores group 8 total: correct, 3857 tokens, 11.23s
+8 stores group 7 average: wrong_answer, 4688 tokens, 18.06s
+8 stores group 7 total: wrong_answer, 4989 tokens, 19.07s
+8 stores group 6 customer_totals: wrong_answer, 7529 tokens, 28.76s
+8 stores group 8 average: wrong_answer, 5339 tokens, 17.79s
+8 stores group 5 customer_totals: wrong_answer, 7855 tokens, 48.23s
+8 stores group 9 total: correct, 3748 tokens, 13.0s
+8 stores group 10 total: correct, 4002 tokens, 10.43s
+8 stores group 9 average: correct, 4474 tokens, 16.6s
+8 stores group 9 customer_totals: wrong_answer, 6166 tokens, 18.44s
+16 stores group 1 total: correct, 6905 tokens, 11.77s
+16 stores group 1 average: length_limit, 8000 tokens, 10.71s
+16 stores group 1 customer_totals: prompt_too_long, 7597 tokens, 9.18s
+8 stores group 7 customer_totals: wrong_answer, 7477 tokens, 45.7s
+8 stores group 10 average: correct, 4666 tokens, 22.9s
+16 stores group 2 total: correct, 7650 tokens, 15.36s
+16 stores group 2 customer_totals: wrong_answer, 3000 tokens, 11.17s
+8 stores group 8 customer_totals: wrong_answer, 7502 tokens, 42.61s
+16 stores group 3 customer_totals: length_limit, 8000 tokens, 11.04s
+16 stores group 3 total: correct, 7268 tokens, 16.57s
+16 stores group 3 average: wrong_answer, 6246 tokens, 19.93s
+16 stores group 4 total: correct, 6817 tokens, 13.92s
+8 stores group 10 customer_totals: wrong_answer, 7050 tokens, 41.79s
+16 stores group 2 average: wrong_answer, 4136 tokens, 32.03s
+16 stores group 4 average: correct, 7670 tokens, 19.68s
+16 stores group 5 total: wrong_answer, 7668 tokens, 16.16s
+16 stores group 4 customer_totals: wrong_answer, 3698 tokens, 19.85s
+16 stores group 5 customer_totals: length_limit, 8000 tokens, 9.38s
+16 stores group 5 average: wrong_answer, 6910 tokens, 14.42s
+16 stores group 6 customer_totals: prompt_too_long, 7599 tokens, 6.66s
+16 stores group 6 total: wrong_answer, 7728 tokens, 13.19s
+16 stores group 8 average: length_limit, 8000 tokens, 8.03s
+16 stores group 6 average: correct, 7970 tokens, 17.56s
+16 stores group 7 total: wrong_answer, 6868 tokens, 13.85s
+16 stores group 8 total: wrong_answer, 7771 tokens, 16.08s
+16 stores group 9 total: correct, 7047 tokens, 13.25s
+16 stores group 7 average: correct, 7463 tokens, 19.51s
+16 stores group 9 customer_totals: prompt_too_long, 7597 tokens, 7.44s
+16 stores group 9 average: wrong_answer, 7224 tokens, 15.57s
+16 stores group 10 average: wrong_answer, 7989 tokens, 8.2s
+16 stores group 10 customer_totals: length_limit, 8000 tokens, 8.29s
+16 stores group 10 total: correct, 7712 tokens, 14.62s
+16 stores group 8 customer_totals: wrong_answer, 4224 tokens, 28.28s
+32 stores group 1 total: wrong_answer, 4043 tokens, 13.54s
+16 stores group 7 customer_totals: wrong_answer, 4861 tokens, 39.85s
+32 stores group 2 customer_totals: wrong_answer, 4631 tokens, 11.51s
+32 stores group 2 average: wrong_answer, 4753 tokens, 18.43s
+32 stores group 1 average: wrong_answer, 4686 tokens, 24.57s
+32 stores group 3 total: wrong_answer, 4117 tokens, 13.76s
+32 stores group 4 total: wrong_answer, 3803 tokens, 9.11s
+32 stores group 3 average: wrong_answer, 4441 tokens, 17.45s
+32 stores group 1 customer_totals: wrong_answer, 6362 tokens, 28.64s
+32 stores group 5 customer_totals: wrong_answer, 5045 tokens, 11.24s
+32 stores group 2 total: wrong_answer, 6661 tokens, 37.64s
+32 stores group 6 total: wrong_answer, 4129 tokens, 15.86s
+32 stores group 5 average: wrong_answer, 4779 tokens, 19.98s
+32 stores group 3 customer_totals: wrong_answer, 7334 tokens, 31.09s
+32 stores group 4 average: wrong_answer, 5520 tokens, 25.97s
+32 stores group 5 total: wrong_answer, 4894 tokens, 24.6s
+32 stores group 4 customer_totals: wrong_answer, 6925 tokens, 37.12s
+32 stores group 8 total: wrong_answer, 4012 tokens, 11.98s
+32 stores group 7 total: wrong_answer, 4033 tokens, 14.55s
+32 stores group 7 average: wrong_answer, 5691 tokens, 20.05s
+32 stores group 6 average: wrong_answer, 5809 tokens, 30.17s
+32 stores group 9 total: wrong_answer, 4272 tokens, 10.84s
+32 stores group 7 customer_totals: wrong_answer, 6259 tokens, 24.5s
+32 stores group 8 customer_totals: wrong_answer, 6084 tokens, 16.08s
+32 stores group 8 average: wrong_answer, 5453 tokens, 29.56s
+32 stores group 6 customer_totals: wrong_answer, 7488 tokens, 38.98s
+32 stores group 10 total: wrong_answer, 3998 tokens, 11.34s
+32 stores group 9 customer_totals: wrong_answer, 4630 tokens, 15.75s
+32 stores group 10 customer_totals: wrong_answer, 4875 tokens, 10.77s
+32 stores group 9 average: wrong_answer, 6464 tokens, 33.53s
+32 stores group 10 average: correct, 7354 tokens, 31.94s
+4 stores, average: 4/10 correct, target accuracy 0.40, 2605 tokens, 497 critical output tokens
+4 stores, customer_totals: 4/10 correct, target accuracy 0.72, 3651 tokens, 937 critical output tokens
+4 stores, total: 9/10 correct, target accuracy 0.90, 1967 tokens, 284 critical output tokens
+8 stores, average: 2/10 correct, target accuracy 0.20, 4853 tokens, 784 critical output tokens
+8 stores, customer_totals: 0/10 correct, target accuracy 0.25, 7159 tokens, 1364 critical output tokens
+8 stores, total: 5/10 correct, target accuracy 0.50, 3980 tokens, 410 critical output tokens
+16 stores, average: 3/10 correct, target accuracy 0.30, 7161 tokens, 534 critical output tokens
+16 stores, customer_totals: 0/10 correct, target accuracy 0.00, 6258 tokens, 543 critical output tokens
+16 stores, total: 6/10 correct, target accuracy 0.60, 7343 tokens, 426 critical output tokens
+32 stores, average: 1/10 correct, target accuracy 0.10, 5495 tokens, 902 critical output tokens
+32 stores, customer_totals: 0/10 correct, target accuracy 0.00, 5963 tokens, 811 critical output tokens
+32 stores, total: 0/10 correct, target accuracy 0.00, 4396 tokens, 547 critical output tokens
+Saved 120 results to results/ledger_calibrate/gemma-3-12b-it/b8000/hierarchy_tree.jsonl
+=== hierarchy_tree_reconstruct, budget 16000, 120 problems
+4 stores group 3 total: correct, 1265 tokens, 5.36s
+4 stores group 2 total: correct, 1277 tokens, 7.26s
+4 stores group 1 total: correct, 1220 tokens, 8.33s
+4 stores group 3 average: correct, 1576 tokens, 8.49s
+4 stores group 2 average: wrong_answer, 1516 tokens, 8.75s
+4 stores group 1 average: correct, 1684 tokens, 12.96s
+4 stores group 4 total: correct, 1224 tokens, 5.89s
+4 stores group 5 total: correct, 1225 tokens, 4.96s
+4 stores group 2 customer_totals: correct, 1940 tokens, 14.82s
+4 stores group 4 average: correct, 1491 tokens, 7.67s
+4 stores group 6 total: correct, 1082 tokens, 4.37s
+4 stores group 1 customer_totals: correct, 2087 tokens, 18.94s
+4 stores group 3 customer_totals: correct, 1886 tokens, 13.76s
+4 stores group 5 average: wrong_answer, 1734 tokens, 11.03s
+4 stores group 4 customer_totals: wrong_answer, 2025 tokens, 16.37s
+4 stores group 7 total: correct, 1276 tokens, 7.13s
+4 stores group 6 average: correct, 1708 tokens, 10.65s
+4 stores group 8 total: correct, 1242 tokens, 6.62s
+4 stores group 7 average: wrong_answer, 1703 tokens, 12.33s
+4 stores group 9 total: correct, 1245 tokens, 6.28s
+4 stores group 5 customer_totals: wrong_answer, 2164 tokens, 19.36s
+4 stores group 6 customer_totals: wrong_answer, 2126 tokens, 18.72s
+4 stores group 8 average: wrong_answer, 1686 tokens, 11.51s
+4 stores group 7 customer_totals: wrong_answer, 2071 tokens, 18.71s
+4 stores group 9 average: wrong_answer, 1502 tokens, 8.99s
+4 stores group 10 total: correct, 1272 tokens, 8.22s
+4 stores group 8 customer_totals: wrong_answer, 2015 tokens, 17.5s
+4 stores group 10 average: wrong_answer, 1677 tokens, 10.35s
+4 stores group 9 customer_totals: correct, 1878 tokens, 13.55s
+8 stores group 1 total: wrong_answer, 2831 tokens, 8.35s
+8 stores group 2 total: correct, 2702 tokens, 8.17s
+4 stores group 10 customer_totals: correct, 1999 tokens, 17.22s
+8 stores group 3 total: correct, 2692 tokens, 7.6s
+8 stores group 2 average: correct, 3527 tokens, 13.46s
+8 stores group 1 average: correct, 3834 tokens, 20.22s
+8 stores group 4 total: correct, 2871 tokens, 9.72s
+8 stores group 5 total: wrong_answer, 2891 tokens, 8.92s
+8 stores group 3 average: correct, 4062 tokens, 21.97s
+8 stores group 1 customer_totals: wrong_answer, 4830 tokens, 29.39s
+8 stores group 4 average: wrong_answer, 3598 tokens, 19.04s
+8 stores group 3 customer_totals: wrong_answer, 4699 tokens, 26.99s
+8 stores group 6 total: correct, 2779 tokens, 8.33s
+8 stores group 2 customer_totals: correct, 5170 tokens, 33.47s
+8 stores group 4 customer_totals: wrong_answer, 4578 tokens, 24.23s
+8 stores group 5 average: wrong_answer, 3707 tokens, 19.55s
+8 stores group 6 average: correct, 3384 tokens, 15.8s
+8 stores group 7 total: correct, 2781 tokens, 10.19s
+8 stores group 8 total: wrong_answer, 2867 tokens, 9.79s
+8 stores group 7 average: wrong_answer, 3765 tokens, 18.62s
+8 stores group 9 total: correct, 2857 tokens, 10.93s
+8 stores group 6 customer_totals: wrong_answer, 4559 tokens, 25.28s
+8 stores group 8 average: wrong_answer, 3505 tokens, 17.55s
+8 stores group 5 customer_totals: wrong_answer, 5079 tokens, 33.9s
+8 stores group 10 total: correct, 2802 tokens, 8.6s
+8 stores group 9 average: correct, 3215 tokens, 15.75s
+8 stores group 7 customer_totals: wrong_answer, 4996 tokens, 35.41s
+16 stores group 1 total: wrong_answer, 5581 tokens, 11.81s
+8 stores group 10 average: correct, 3750 tokens, 16.81s
+8 stores group 8 customer_totals: wrong_answer, 4849 tokens, 29.16s
+8 stores group 9 customer_totals: correct, 4751 tokens, 31.25s
+16 stores group 2 total: correct, 5478 tokens, 10.77s
+16 stores group 1 average: correct, 7494 tokens, 20.61s
+16 stores group 3 total: correct, 5522 tokens, 10.14s
+16 stores group 2 average: wrong_answer, 6888 tokens, 14.63s
+8 stores group 10 customer_totals: wrong_answer, 4868 tokens, 31.38s
+16 stores group 4 total: correct, 5362 tokens, 8.94s
+16 stores group 5 total: wrong_answer, 5515 tokens, 9.71s
+16 stores group 4 average: wrong_answer, 6921 tokens, 16.31s
+16 stores group 1 customer_totals: wrong_answer, 9523 tokens, 39.97s
+16 stores group 3 average: wrong_answer, 6708 tokens, 22.62s
+16 stores group 6 total: wrong_answer, 5450 tokens, 9.75s
+16 stores group 5 average: correct, 7239 tokens, 18.22s
+16 stores group 2 customer_totals: wrong_answer, 9583 tokens, 43.21s
+16 stores group 7 total: correct, 5316 tokens, 8.28s
+16 stores group 3 customer_totals: wrong_answer, 9206 tokens, 40.34s
+16 stores group 6 average: wrong_answer, 6551 tokens, 19.78s
+16 stores group 5 customer_totals: wrong_answer, 8882 tokens, 29.43s
+16 stores group 8 total: correct, 5588 tokens, 10.31s
+16 stores group 4 customer_totals: wrong_answer, 9664 tokens, 43.98s
+16 stores group 7 average: correct, 7573 tokens, 23.72s
+16 stores group 9 total: correct, 5514 tokens, 13.2s
+16 stores group 6 customer_totals: wrong_answer, 9004 tokens, 39.99s
+16 stores group 10 total: correct, 5334 tokens, 14.37s
+16 stores group 9 average: correct, 7277 tokens, 25.22s
+16 stores group 8 average: correct, 7676 tokens, 32.09s
+16 stores group 7 customer_totals: wrong_answer, 9394 tokens, 50.53s
+16 stores group 10 average: correct, 7004 tokens, 23.82s
+32 stores group 1 total: wrong_answer, 11120 tokens, 18.15s
+16 stores group 8 customer_totals: wrong_answer, 9755 tokens, 61.52s
+16 stores group 10 customer_totals: wrong_answer, 9081 tokens, 42.96s
+16 stores group 9 customer_totals: wrong_answer, 9526 tokens, 55.71s
+32 stores group 1 customer_totals: wrong_answer, 15408 tokens, 27.29s
+32 stores group 2 total: wrong_answer, 11155 tokens, 16.65s
+32 stores group 1 average: correct, 13940 tokens, 31.77s
+32 stores group 3 total: wrong_answer, 10967 tokens, 12.07s
+32 stores group 2 average: wrong_answer, 14350 tokens, 26.7s
+32 stores group 2 customer_totals: wrong_answer, 15495 tokens, 23.4s
+32 stores group 4 total: correct, 11097 tokens, 11.34s
+32 stores group 3 customer_totals: wrong_answer, 15423 tokens, 21.28s
+32 stores group 3 average: wrong_answer, 14225 tokens, 21.8s
+32 stores group 4 average: wrong_answer, 13958 tokens, 22.64s
+32 stores group 4 customer_totals: wrong_answer, 15452 tokens, 22.88s
+32 stores group 5 total: correct, 11270 tokens, 12.72s
+32 stores group 6 total: correct, 11192 tokens, 12.27s
+32 stores group 5 average: wrong_answer, 14473 tokens, 26.34s
+32 stores group 5 customer_totals: wrong_answer, 15373 tokens, 19.33s
+32 stores group 7 total: wrong_answer, 11225 tokens, 12.99s
+32 stores group 6 average: correct, 13614 tokens, 22.28s
+32 stores group 6 customer_totals: wrong_answer, 15245 tokens, 17.03s
+32 stores group 7 customer_totals: wrong_answer, 15433 tokens, 19.64s
+32 stores group 7 average: correct, 14482 tokens, 26.39s
+32 stores group 8 total: correct, 11330 tokens, 14.15s
+32 stores group 8 customer_totals: wrong_answer, 15445 tokens, 20.8s
+32 stores group 9 total: wrong_answer, 11066 tokens, 11.87s
+32 stores group 8 average: correct, 14452 tokens, 26.71s
+32 stores group 10 total: wrong_answer, 11318 tokens, 10.73s
+32 stores group 9 customer_totals: wrong_answer, 15465 tokens, 20.03s
+32 stores group 9 average: wrong_answer, 13857 tokens, 22.04s
+32 stores group 10 customer_totals: wrong_answer, 15383 tokens, 17.91s
+32 stores group 10 average: correct, 14764 tokens, 21.31s
+4 stores, average: 4/10 correct, target accuracy 0.40, 1628 tokens, 368 critical output tokens
+4 stores, customer_totals: 5/10 correct, target accuracy 0.86, 2019 tokens, 620 critical output tokens
+4 stores, total: 10/10 correct, target accuracy 1.00, 1233 tokens, 186 critical output tokens
+8 stores, average: 6/10 correct, target accuracy 0.60, 3635 tokens, 633 critical output tokens
+8 stores, customer_totals: 2/10 correct, target accuracy 0.72, 4838 tokens, 1109 critical output tokens
+8 stores, total: 7/10 correct, target accuracy 0.70, 2807 tokens, 279 critical output tokens
+16 stores, average: 6/10 correct, target accuracy 0.60, 7133 tokens, 757 critical output tokens
+16 stores, customer_totals: 0/10 correct, target accuracy 0.60, 9362 tokens, 1548 critical output tokens
+16 stores, total: 7/10 correct, target accuracy 0.70, 5466 tokens, 356 critical output tokens
+32 stores, average: 5/10 correct, target accuracy 0.50, 14212 tokens, 909 critical output tokens
+32 stores, customer_totals: 0/10 correct, target accuracy 0.00, 15412 tokens, 752 critical output tokens
+32 stores, total: 4/10 correct, target accuracy 0.40, 11174 tokens, 410 critical output tokens
+Saved 120 results to results/ledger_calibrate/gemma-3-12b-it/b16000/hierarchy_tree_reconstruct.jsonl
+=== hierarchy_tree, budget 16000, 120 problems
+4 stores group 1 total: correct, 1888 tokens, 7.14s
+4 stores group 2 total: correct, 2031 tokens, 7.77s
+4 stores group 3 total: correct, 1861 tokens, 8.74s
+4 stores group 2 average: wrong_answer, 1983 tokens, 9.79s
+4 stores group 4 total: correct, 1830 tokens, 7.1s
+4 stores group 3 average: correct, 2511 tokens, 15.93s
+4 stores group 4 average: wrong_answer, 1690 tokens, 7.92s
+4 stores group 1 average: correct, 2594 tokens, 17.47s
+4 stores group 5 total: correct, 2012 tokens, 7.36s
+4 stores group 1 customer_totals: wrong_answer, 3259 tokens, 24.34s
+4 stores group 5 average: wrong_answer, 2041 tokens, 8.79s
+4 stores group 2 customer_totals: wrong_answer, 3191 tokens, 25.12s
+4 stores group 6 total: correct, 2100 tokens, 7.76s
+4 stores group 4 customer_totals: correct, 3750 tokens, 21.14s
+4 stores group 7 total: wrong_answer, 1849 tokens, 7.53s
+4 stores group 3 customer_totals: wrong_answer, 3726 tokens, 25.93s
+4 stores group 5 customer_totals: wrong_answer, 2985 tokens, 16.65s
+4 stores group 6 average: correct, 2613 tokens, 11.82s
+4 stores group 7 average: wrong_answer, 2303 tokens, 9.31s
+4 stores group 8 total: correct, 1827 tokens, 6.43s
+4 stores group 9 total: wrong_answer, 1707 tokens, 6.9s
+4 stores group 8 average: wrong_answer, 2423 tokens, 10.99s
+4 stores group 10 total: correct, 1838 tokens, 6.88s
+4 stores group 7 customer_totals: wrong_answer, 3141 tokens, 19.14s
+4 stores group 6 customer_totals: wrong_answer, 3386 tokens, 20.53s
+4 stores group 9 average: wrong_answer, 2772 tokens, 15.16s
+4 stores group 10 average: wrong_answer, 2182 tokens, 11.77s
+4 stores group 8 customer_totals: correct, 3581 tokens, 21.09s
+8 stores group 1 total: correct, 3799 tokens, 10.46s
+8 stores group 2 total: wrong_answer, 3908 tokens, 9.9s
+8 stores group 1 average: wrong_answer, 4636 tokens, 16.04s
+8 stores group 3 total: correct, 4140 tokens, 12.02s
+8 stores group 2 average: wrong_answer, 4097 tokens, 16.01s
+4 stores group 10 customer_totals: wrong_answer, 3932 tokens, 26.3s
+8 stores group 3 average: wrong_answer, 3842 tokens, 13.29s
+4 stores group 9 customer_totals: correct, 4239 tokens, 38.81s
+8 stores group 1 customer_totals: wrong_answer, 6660 tokens, 29.61s
+8 stores group 4 total: wrong_answer, 3893 tokens, 11.17s
+8 stores group 5 total: correct, 4034 tokens, 9.08s
+8 stores group 6 total: wrong_answer, 3880 tokens, 11.54s
+8 stores group 5 average: wrong_answer, 4493 tokens, 19.04s
+8 stores group 2 customer_totals: wrong_answer, 6671 tokens, 38.84s
+8 stores group 3 customer_totals: wrong_answer, 6889 tokens, 32.74s
+8 stores group 4 average: wrong_answer, 5785 tokens, 26.12s
+8 stores group 6 average: correct, 4598 tokens, 17.91s
+8 stores group 7 total: correct, 3586 tokens, 9.43s
+8 stores group 8 total: correct, 4054 tokens, 10.18s
+8 stores group 5 customer_totals: wrong_answer, 6831 tokens, 31.64s
+8 stores group 7 average: correct, 4007 tokens, 16.73s
+8 stores group 4 customer_totals: correct, 8150 tokens, 41.26s
+8 stores group 9 total: correct, 3665 tokens, 11.12s
+8 stores group 6 customer_totals: wrong_answer, 7505 tokens, 34.81s
+8 stores group 9 average: wrong_answer, 4801 tokens, 18.3s
+8 stores group 10 total: correct, 4335 tokens, 13.67s
+8 stores group 10 average: wrong_answer, 3654 tokens, 13.26s
+8 stores group 7 customer_totals: wrong_answer, 7708 tokens, 42.83s
+8 stores group 8 average: wrong_answer, 7885 tokens, 37.08s
+16 stores group 1 total: wrong_answer, 7351 tokens, 11.72s
+8 stores group 8 customer_totals: correct, 7924 tokens, 46.53s
+16 stores group 2 total: correct, 7848 tokens, 14.79s
+16 stores group 3 total: correct, 7260 tokens, 11.56s
+8 stores group 9 customer_totals: wrong_answer, 7995 tokens, 52.94s
+16 stores group 1 average: wrong_answer, 10946 tokens, 40.31s
+16 stores group 2 average: wrong_answer, 10047 tokens, 29.9s
+8 stores group 10 customer_totals: wrong_answer, 8631 tokens, 48.49s
+16 stores group 4 total: wrong_answer, 6854 tokens, 13.74s
+16 stores group 1 customer_totals: wrong_answer, 14801 tokens, 51.59s
+16 stores group 3 average: correct, 10818 tokens, 31.96s
+16 stores group 4 average: wrong_answer, 7723 tokens, 20.12s
+16 stores group 5 total: wrong_answer, 7231 tokens, 12.05s
+16 stores group 5 average: wrong_answer, 7002 tokens, 14.93s
+16 stores group 2 customer_totals: wrong_answer, 14840 tokens, 55.8s
+16 stores group 6 total: correct, 7694 tokens, 12.48s
+16 stores group 3 customer_totals: wrong_answer, 14297 tokens, 42.42s
+16 stores group 6 average: wrong_answer, 7966 tokens, 18.46s
+16 stores group 7 total: wrong_answer, 7138 tokens, 13.59s
+16 stores group 4 customer_totals: wrong_answer, 12175 tokens, 40.68s
+16 stores group 7 average: wrong_answer, 8072 tokens, 21.85s
+16 stores group 8 total: correct, 7800 tokens, 12.37s
+16 stores group 9 total: wrong_answer, 6960 tokens, 11.83s
+16 stores group 8 average: wrong_answer, 8596 tokens, 16.99s
+16 stores group 5 customer_totals: wrong_answer, 11987 tokens, 44.67s
+16 stores group 9 average: wrong_answer, 6615 tokens, 14.74s
+16 stores group 6 customer_totals: wrong_answer, 13439 tokens, 43.09s
+16 stores group 10 total: correct, 6761 tokens, 11.76s
+16 stores group 7 customer_totals: wrong_answer, 15018 tokens, 41.63s
+32 stores group 1 total: wrong_answer, 13970 tokens, 13.09s
+32 stores group 1 customer_totals: wrong_answer, 15100 tokens, 10.65s
+16 stores group 8 customer_totals: wrong_answer, 15311 tokens, 45.53s
+32 stores group 1 average: wrong_answer, 13408 tokens, 15.52s
+16 stores group 9 customer_totals: wrong_answer, 12128 tokens, 34.08s
+16 stores group 10 average: correct, 10261 tokens, 31.06s
+32 stores group 2 customer_totals: wrong_answer, 13359 tokens, 9.59s
+32 stores group 2 total: wrong_answer, 14183 tokens, 28.47s
+32 stores group 2 average: wrong_answer, 15203 tokens, 18.64s
+32 stores group 3 total: wrong_answer, 14019 tokens, 13.47s
+32 stores group 4 total: wrong_answer, 14030 tokens, 10.39s
+32 stores group 3 average: wrong_answer, 13555 tokens, 14.88s
+32 stores group 3 customer_totals: wrong_answer, 13847 tokens, 15.64s
+16 stores group 10 customer_totals: wrong_answer, 13787 tokens, 49.44s
+32 stores group 5 total: wrong_answer, 14758 tokens, 14.28s
+32 stores group 4 average: wrong_answer, 14655 tokens, 21.07s
+32 stores group 5 customer_totals: wrong_answer, 13815 tokens, 17.73s
+32 stores group 4 customer_totals: wrong_answer, 13714 tokens, 16.98s
+32 stores group 6 total: correct, 13618 tokens, 13.92s
+32 stores group 6 average: wrong_answer, 15084 tokens, 14.98s
+32 stores group 5 average: wrong_answer, 14467 tokens, 21.48s
+32 stores group 6 customer_totals: wrong_answer, 13686 tokens, 14.83s
+32 stores group 7 average: length_limit, 16000 tokens, 9.19s
+32 stores group 7 total: wrong_answer, 13541 tokens, 14.79s
+32 stores group 8 total: wrong_answer, 13903 tokens, 13.15s
+32 stores group 7 customer_totals: wrong_answer, 14971 tokens, 16.02s
+32 stores group 9 total: wrong_answer, 14538 tokens, 15.36s
+32 stores group 9 customer_totals: wrong_answer, 14454 tokens, 9.54s
+32 stores group 8 customer_totals: wrong_answer, 13717 tokens, 15.4s
+32 stores group 8 average: length_limit, 16000 tokens, 17.51s
+32 stores group 10 average: length_limit, 16000 tokens, 12.49s
+32 stores group 9 average: wrong_answer, 15577 tokens, 24.2s
+32 stores group 10 total: wrong_answer, 15450 tokens, 17.39s
+32 stores group 10 customer_totals: wrong_answer, 8317 tokens, 38.47s
+4 stores, average: 3/10 correct, target accuracy 0.30, 2311 tokens, 475 critical output tokens
+4 stores, customer_totals: 3/10 correct, target accuracy 0.75, 3519 tokens, 1017 critical output tokens
+4 stores, total: 8/10 correct, target accuracy 0.80, 1894 tokens, 269 critical output tokens
+8 stores, average: 2/10 correct, target accuracy 0.20, 4780 tokens, 743 critical output tokens
+8 stores, customer_totals: 2/10 correct, target accuracy 0.65, 7496 tokens, 1588 critical output tokens
+8 stores, total: 7/10 correct, target accuracy 0.70, 3929 tokens, 387 critical output tokens
+16 stores, average: 2/10 correct, target accuracy 0.20, 8805 tokens, 939 critical output tokens
+16 stores, customer_totals: 0/10 correct, target accuracy 0.60, 13778 tokens, 1823 critical output tokens
+16 stores, total: 5/10 correct, target accuracy 0.50, 7290 tokens, 424 critical output tokens
+32 stores, average: 0/10 correct, target accuracy 0.00, 14995 tokens, 652 critical output tokens
+32 stores, customer_totals: 0/10 correct, target accuracy 0.00, 13498 tokens, 646 critical output tokens
+32 stores, total: 1/10 correct, target accuracy 0.10, 14201 tokens, 572 critical output tokens
+Saved 120 results to results/ledger_calibrate/gemma-3-12b-it/b16000/hierarchy_tree.jsonl

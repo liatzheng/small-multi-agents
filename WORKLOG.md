@@ -190,7 +190,123 @@ Findings:
 - **A 27B planner with 4B workers does not reach the 27B single agent.** The gain from splitting depends entirely on plan quality, and no Gemma size plans well enough here.
 - **Caveat:** 27B in fp8 may understate it. 12B performing about the same as 27B is worth checking against another provider if this comparison goes in the paper.
 
-### Not yet run
+## 2026-11-24: second task, ledger aggregation
+
+### Why
+
+On the chain task the split is hidden: assigning equations to workers requires tracing the chains, which is most of the task. Planners therefore fail before workers start. Natalia asked for a task whose split is natural without knowing the answer in advance, so the planner and reconstructor have a fair job.
+
+### Design
+
+- `generate_ledger.py`: k store ledgers, each with n rows of `customer, category, amount`. Amounts are 1-9 and 8 customers are shared across stores. Each group of ledgers gets three questions that differ in how per-store results merge:
+  - `total`: add the per-store totals (distributive).
+  - `average` of one category, rounded down: needs a total and a count per store (algebraic). Averaging the per-store averages is wrong.
+  - `customer_totals`: every customer's total across all stores, 8 targets (group-by across chunks). This scores per target like the chain task, so one slip costs one customer rather than the whole problem.
+- `run_ledger.py` reuses the OpenRouter client, budget accounting and timing from `run_wide.py`. It has five systems:
+  - `single_agent`: the full budget.
+  - `ensemble`: 3 attempts at B/3 each, with a per-target majority vote.
+  - `hierarchy_oracle`: code gives each store to its own worker with a correct, fixed instruction, and code merges the reports.
+  - `hierarchy_reconstruct`: the same workers, but a model reconstructor merges the reports. It gets B/4 held back, and isolates how hard the merge is.
+  - `hierarchy`: a model planner (B/8) sees the question and one example ledger and writes the worker instruction. Workers run in parallel, and the reconstructor answers from the reports alone.
+- Every role is told to add a list one number at a time with running totals. Without that, 4B summed 12 numbers in one expression and slipped.
+
+### Smoke tests and fixes (scratchpad, not kept)
+
+- **First version:** 4B, amounts 1-60, a top-customer question. Everything was wrong. Workers summed 12 numbers in one line, and the oracle average instruction was ambiguous.
+- **Second version:** a general "running totals" hint. Per-store totals rose to about 78%. However:
+  - The answer needs all 16 reports right, so exact match compounded to about 0.78^16.
+  - The hint made workers keep one grand total even when told to filter or group.
+- **Changes:**
+  - Amounts became 1-9.
+  - The top-customer question became customer totals.
+  - The hint now applies only when adding a list.
+  - Single-number answers record `abs_error`.
+- **Harness bug, now fixed:** 12B writes one `REPORT:` line per customer, and `extract_report` kept only the last one. It now keeps everything after the first marker. Customer-total reports in the smoke tests before the fix were truncated to one customer, for both code and model merges.
+
+### Worker probe: `results/ledger_worker_probe/`
+
+Each cell is a single-store worker with the correct instruction, 20 workers per cell, re-scored after the report fix:
+
+| model | rows | total | average | customer totals (all right) | per customer |
+|---|---|---|---|---|---|
+| 4B | 4 | 19/20 | 3/20 | 5/20 | 0.49 |
+| 4B | 8 | 17/20 | 0/20 | 1/20 | 0.18 |
+| 4B | 12 | 14/20 | 0/20 | 0/20 | 0.16 |
+| 12B | 4 | 18/20 | 15/20 | 20/20 | 1.00 |
+| 12B | 8 | 20/20 | 17/20 | 17/20 | 0.97 |
+| 12B | 12 | 20/20 | 15/20 | 13/20 | 0.93 |
+
+4B cannot filter or group even a 4-row ledger: it keeps a total over every row, or loses track. 12B can, and its remaining average failures are genuine filtering slips. Decision: 12B for every role and 8 rows per store.
+
+### Calibration: Gemma-3 12B, `results/ledger_calibrate/`
+
+10 groups × 4, 8, 16 and 32 stores × 3 questions, at budgets of 8k and 16k, all five systems. 12B handles every role. The run produced 1,200 records with no errors; 15 rate-limit retries all recovered.
+
+Target accuracy at 16k, with 4/8/16/32 stores:
+
+| system | total | average | customer totals |
+|---|---|---|---|
+| single agent | 0.60/0.30/0.00/0.00 | 0.70/0.50/0.20/0.00 | 0.89/0.61/0.12/0.00 |
+| ensemble (B/3) | 0.40/0.30/0.00/0.00 | 0.80/0.50/0.10/0.00 | 0.92/0.61/0.06/0.00 |
+| oracle split, code merge | 1.00/0.80/0.70/0.80 | 0.40/0.50/0.60/0.40 | 0.85/0.71/0.66/0.36 |
+| oracle split, model merge | 1.00/0.90/0.90/0.30 | 0.30/0.60/0.50/0.50 | 0.87/0.66/0.35/0.07 |
+| model planner + model merge | 0.90/0.70/0.70/0.10 | 0.30/0.10/0.20/0.40 | 0.80/0.62/0.30/0.00 |
+
+Critical-path output tokens at 16k (the time proxy), with 4 and 32 stores:
+
+| system | total | average | customer totals |
+|---|---|---|---|
+| single agent | 383 / 1211 | 310 / 763 | 621 / 2648 |
+| oracle split, code merge | 74 / 83 | 197 / 276 | 109 / 143 |
+| model planner + model merge | 277 / 677 | 536 / 699 | 958 / 625 |
+
+Findings:
+
+- **On totals, the full model hierarchy beats the single agent at every width.** At 16 stores it scores 0.70 against 0.00, with the planner and the reconstructor both written by the model. Every planner instruction for totals was usable (40/40). The single agent's error grows with width: its median miss is 0 at 4 stores, 12 at 8, 26 at 16 and 67 at 32.
+- **Averages show the planning trap.** 17/40 planner instructions asked for the category total without the count, and every one of those 17 scored 0. Plans that asked for both scored 0.43. At small widths the single agent beats the oracle split: workers miss the filter about 15% of the time, and 4 workers compound that.
+- **For customer totals, the merge is the bottleneck.** With the oracle split, code merge reaches 0.66 at 16 stores, but model merge only 0.35. The reconstructor has to add 16 reports × 8 customers, which is the same wide aggregation the single agent fails at. My keyword check on planner instructions for this question does not separate good plans from bad ones, so there is no plan-quality number yet.
+- **Time:** the oracle split has a nearly constant critical path, 74-83 output tokens for totals at every width. Model hierarchies add the planner and reconstructor in sequence but stay below the single agent at large widths.
+- **B/N starvation at 8k with 32 stores:** every hierarchy and the ensemble hit the length limit. Each worker gets 250 tokens, and the prompt uses most of them. At 16k only the average question at 32 stores starves, in `hierarchy_reconstruct` and `hierarchy`. The single agent never starves on this task.
+- **Caveat:** 10 groups per cell. Differences around 0.1-0.2 are noise.
+
+### Tree merge: `hierarchy_tree_reconstruct` and `hierarchy_tree`
+
+Mergers each combine up to 4 reports into one report in the same format, one tree level per round, and a final reconstructor answers. The merge budget left after the workers is split evenly over the remaining merge calls. With 4 stores the tree is the same as the flat merge. The flat merge's messages are unchanged, checked against all 120 logged calls.
+
+Target accuracy at 16k, with 4/8/16/32 stores:
+
+| system | total | average | customer totals |
+|---|---|---|---|
+| oracle split, flat model merge | 1.00/0.90/0.90/0.30 | 0.30/0.60/0.50/0.50 | 0.87/0.66/0.35/0.07 |
+| oracle split, tree merge | 1.00/0.70/0.70/0.40 | 0.40/0.60/0.60/0.50 | 0.86/0.72/0.60/0.00 |
+| model planner, flat merge | 0.90/0.70/0.70/0.10 | 0.30/0.10/0.20/0.40 | 0.80/0.62/0.30/0.00 |
+| model planner, tree merge | 0.80/0.70/0.50/0.10 | 0.30/0.20/0.20/0.00 | 0.75/0.65/0.60/0.00 |
+
+- **The tree fixes the customer-totals merge at 16 stores.** It reaches 0.35 → 0.60 with the oracle split and 0.30 → 0.60 with the model planner, close to the code merge's 0.66.
+- **At 32 stores the tree starves.** At 16k, all 80 level-1 mergers in the customer-totals problems hit the length limit. Each gets 610 tokens, its input is about 346, and the remaining 264 are too few to add 4 × 8 numbers stepwise. Splitting the merge budget evenly does not scale with tree size; this is the B/N problem moved up one level.
+- **Totals and averages:** no clear change, within the noise of 10 groups.
+- An `OSError` ("No route to host") stopped the first attempt after 85 problems. `run_wide.py` now retries on any `OSError`, and the run resumed.
+
+## 2026-11-25: main run, `results/ledger_main/` (partial)
+
+The main run uses 30 groups × 4, 8, 16 and 32 stores × 3 questions (seed 7301, 8 rows, 12B), which keeps it separate from the calibration problems. It ran from a queue script (scratchpad `night.sh`) with automatic resume.
+
+- An `IncompleteRead` (a response cut off mid-body) failed one step. The queue resumed it, and `run_wide.py` now also retries on `http.client.HTTPException`.
+- Claude Code stopped the queue overnight because the Mac ran low on memory. The run itself had not failed.
+- Finished at 16k: `single_agent`, `ensemble` and `hierarchy_oracle` (360 each), plus `hierarchy_reconstruct` (54/360).
+- Not started: the rest of 16k, all of 8k, and the 27B single agent and ensemble. Restart with `--resume`.
+
+Target accuracy at 16k, with 4/8/16/32 stores:
+
+| system | total | average | customer totals |
+|---|---|---|---|
+| single agent | 0.40/0.27/0.00/0.00 | 0.73/0.43/0.03/0.10 | 0.88/0.64/0.12/0.03 |
+| ensemble | 0.43/0.07/0.00/0.00 | 0.87/0.43/0.00/0.03 | 0.94/0.64/0.15/0.00 |
+| oracle split, code merge | 1.00/0.83/0.87/0.70 | 0.53/0.63/0.47/0.33 | 0.88/0.82/0.71/0.41 |
+
+The critical path for the oracle split stays at 79-87 output tokens for totals at every width, against 414-1209 for the single agent. The pattern from the calibration holds with 30 groups per cell.
+
+### Not yet run on the chain task
 
 - More groups per cell.
 - A plan format where the planner names each chain's variables and code copies the equations, which would cut planner output and copying errors.
