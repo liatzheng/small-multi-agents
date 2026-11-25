@@ -1,0 +1,268 @@
+=== hierarchy, budget 8000, 120 problems
+width 2 group 4 fraction 1.0: invalid_plan, 0.00 of targets, 678 tokens, 3.22s
+width 2 group 4 fraction 0.5: invalid_plan, 0.00 of targets, 750 tokens, 3.9s
+width 2 group 4 fraction 0.0: invalid_plan, 0.00 of targets, 741 tokens, 4.11s
+width 2 group 5 fraction 1.0: wrong_answer, 0.00 of targets, 1354 tokens, 13.77s
+width 2 group 6 fraction 0.5: wrong_answer, 0.00 of targets, 1303 tokens, 10.91s
+width 2 group 2 fraction 0.0: wrong_answer, 0.00 of targets, 1514 tokens, 16.08s
+width 2 group 1 fraction 1.0: wrong_answer, 0.00 of targets, 1552 tokens, 16.25s
+width 2 group 2 fraction 1.0: wrong_answer, 0.00 of targets, 1587 tokens, 17.87s
+width 2 group 6 fraction 0.0: wrong_answer, 0.00 of targets, 1641 tokens, 19.21s
+width 2 group 2 fraction 0.5: wrong_answer, 0.00 of targets, 1838 tokens, 19.52s
+width 2 group 3 fraction 0.0: correct, 1.00 of targets, 1810 tokens, 19.76s
+width 2 group 1 fraction 0.0: correct, 1.00 of targets, 1743 tokens, 19.79s
+width 2 group 5 fraction 0.0: correct, 1.00 of targets, 1877 tokens, 19.97s
+width 2 group 3 fraction 0.5: correct, 1.00 of targets, 1909 tokens, 19.24s
+width 2 group 1 fraction 0.5: correct, 1.00 of targets, 1731 tokens, 20.74s
+width 2 group 7 fraction 0.0: wrong_answer, 0.00 of targets, 1493 tokens, 16.01s
+width 2 group 3 fraction 1.0: wrong_answer, 0.00 of targets, 1734 tokens, 22.65s
+width 2 group 5 fraction 0.5: wrong_answer, 0.00 of targets, 1990 tokens, 25.46s
+width 2 group 6 fraction 1.0: wrong_answer, 0.00 of targets, 1922 tokens, 21.87s
+width 2 group 9 fraction 0.5: invalid_plan, 0.00 of targets, 1125 tokens, 9.01s
+width 2 group 9 fraction 0.0: invalid_plan, 0.00 of targets, 1172 tokens, 9.65s
+width 2 group 8 fraction 1.0: wrong_answer, 0.00 of targets, 1254 tokens, 11.28s
+width 2 group 9 fraction 1.0: invalid_plan, 0.00 of targets, 1229 tokens, 10.35s
+width 4 group 1 fraction 0.0: wrong_answer, 0.00 of targets, 2469 tokens, 11.66s
+width 4 group 1 fraction 0.5: wrong_answer, 0.00 of targets, 2552 tokens, 13.48s
+width 4 group 1 fraction 1.0: wrong_answer, 0.00 of targets, 2524 tokens, 12.44s
+width 2 group 10 fraction 1.0: wrong_answer, 0.00 of targets, 1406 tokens, 16.82s
+width 4 group 4 fraction 0.0: wrong_answer, 0.00 of targets, 2223 tokens, 11.2s
+width 4 group 2 fraction 0.5: wrong_answer, 0.00 of targets, 2974 tokens, 18.13s
+width 4 group 2 fraction 1.0: wrong_answer, 0.00 of targets, 2717 tokens, 15.71s
+width 4 group 4 fraction 1.0: wrong_answer, 0.00 of targets, 2175 tokens, 11.2s
+width 2 group 10 fraction 0.0: wrong_answer, 0.00 of targets, 1734 tokens, 26.91s
+width 2 group 10 fraction 0.5: wrong_answer, 0.00 of targets, 1773 tokens, 27.82s
+width 2 group 7 fraction 1.0: wrong_answer, 0.00 of targets, 2122 tokens, 33.73s
+width 2 group 7 fraction 0.5: wrong_answer, 0.00 of targets, 2163 tokens, 34.69s
+width 4 group 4 fraction 0.5: wrong_answer, 0.00 of targets, 2801 tokens, 14.55s
+width 2 group 8 fraction 0.5: wrong_answer, 0.00 of targets, 2260 tokens, 37.92s
+width 4 group 2 fraction 0.0: wrong_answer, 0.50 of targets, 3453 tokens, 31.81s
+width 4 group 7 fraction 0.5: wrong_answer, 0.00 of targets, 2486 tokens, 12.81s
+width 4 group 8 fraction 0.0: wrong_answer, 0.25 of targets, 2935 tokens, 12.24s
+width 4 group 7 fraction 0.0: correct, 1.00 of targets, 3294 tokens, 13.99s
+width 4 group 5 fraction 0.5: wrong_answer, 0.00 of targets, 2809 tokens, 18.5s
+width 4 group 5 fraction 0.0: correct, 1.00 of targets, 3390 tokens, 25.41s
+width 4 group 8 fraction 0.5: wrong_answer, 0.00 of targets, 2714 tokens, 10.49s
+width 4 group 3 fraction 1.0: correct, 1.00 of targets, 3191 tokens, 40.69s
+width 4 group 9 fraction 0.0: wrong_answer, 0.00 of targets, 2531 tokens, 10.73s
+width 4 group 8 fraction 1.0: wrong_answer, 0.00 of targets, 3076 tokens, 18.67s
+width 4 group 3 fraction 0.5: wrong_answer, 0.25 of targets, 3387 tokens, 48.81s
+width 2 group 8 fraction 0.0: wrong_answer, 0.00 of targets, 3535 tokens, 64.59s
+width 8 group 1 fraction 0.0: length_limit, 0.00 of targets, 2000 tokens, 10.14s
+width 4 group 3 fraction 0.0: wrong_answer, 0.50 of targets, 3767 tokens, 55.77s
+width 4 group 6 fraction 1.0: wrong_answer, 0.00 of targets, 3019 tokens, 38.34s
+width 4 group 7 fraction 1.0: wrong_answer, 0.00 of targets, 5448 tokens, 36.54s
+width 8 group 2 fraction 0.0: length_limit, 0.00 of targets, 2000 tokens, 10.1s
+width 8 group 2 fraction 1.0: length_limit, 0.00 of targets, 2000 tokens, 9.2s
+width 8 group 2 fraction 0.5: length_limit, 0.00 of targets, 2000 tokens, 10.12s
+width 8 group 1 fraction 0.5: wrong_answer, 0.00 of targets, 5453 tokens, 22.63s
+width 4 group 10 fraction 0.0: wrong_answer, 0.00 of targets, 2804 tokens, 34.23s
+width 8 group 3 fraction 1.0: wrong_answer, 0.00 of targets, 2079 tokens, 12.27s
+width 8 group 4 fraction 0.0: length_limit, 0.00 of targets, 2000 tokens, 9.89s
+width 4 group 5 fraction 1.0: wrong_answer, 0.00 of targets, 3997 tokens, 54.83s
+width 4 group 6 fraction 0.0: wrong_answer, 0.00 of targets, 3731 tokens, 54.75s
+width 8 group 4 fraction 0.5: length_limit, 0.00 of targets, 2000 tokens, 9.37s
+width 4 group 6 fraction 0.5: wrong_answer, 0.00 of targets, 3847 tokens, 54.6s
+width 4 group 10 fraction 1.0: wrong_answer, 0.00 of targets, 3086 tokens, 38.17s
+width 8 group 5 fraction 0.0: length_limit, 0.00 of targets, 2000 tokens, 9.87s
+width 8 group 5 fraction 0.5: length_limit, 0.00 of targets, 2000 tokens, 9.84s
+width 8 group 5 fraction 1.0: length_limit, 0.00 of targets, 2000 tokens, 10.05s
+width 8 group 7 fraction 0.0: length_limit, 0.00 of targets, 2000 tokens, 10.46s
+width 4 group 9 fraction 0.5: wrong_answer, 0.00 of targets, 4337 tokens, 49.14s
+width 8 group 3 fraction 0.5: wrong_answer, 0.00 of targets, 2807 tokens, 25.65s
+width 8 group 7 fraction 0.5: length_limit, 0.00 of targets, 2000 tokens, 10.36s
+width 4 group 9 fraction 1.0: wrong_answer, 0.00 of targets, 3912 tokens, 50.25s
+width 4 group 10 fraction 0.5: wrong_answer, 0.00 of targets, 3428 tokens, 51.31s
+width 8 group 7 fraction 1.0: length_limit, 0.00 of targets, 2000 tokens, 10.8s
+width 16 group 1 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 1 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 1 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 2 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 2 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 2 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 3 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 3 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 3 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 4 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 4 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 4 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 5 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 5 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 5 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 6 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 6 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 6 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 7 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 7 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 7 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 8 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 8 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 8 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 9 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 9 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 9 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 10 fraction 0.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 10 fraction 0.5: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 16 group 10 fraction 1.0: prompt_too_long, 0.00 of targets, 0 tokens, 0.0s
+width 8 group 6 fraction 0.0: wrong_answer, 0.00 of targets, 5369 tokens, 17.57s
+width 8 group 6 fraction 0.5: wrong_answer, 0.00 of targets, 4932 tokens, 18.08s
+width 8 group 9 fraction 0.0: length_limit, 0.00 of targets, 2000 tokens, 10.66s
+width 8 group 9 fraction 0.5: length_limit, 0.00 of targets, 2000 tokens, 10.64s
+width 8 group 9 fraction 1.0: length_limit, 0.00 of targets, 2000 tokens, 10.57s
+width 8 group 8 fraction 0.0: wrong_answer, 0.00 of targets, 5563 tokens, 17.63s
+width 8 group 6 fraction 1.0: wrong_answer, 0.00 of targets, 4849 tokens, 23.78s
+width 8 group 1 fraction 1.0: wrong_answer, 0.12 of targets, 6644 tokens, 48.74s
+width 8 group 8 fraction 0.5: wrong_answer, 0.00 of targets, 5676 tokens, 18.97s
+width 8 group 10 fraction 0.0: wrong_answer, 0.00 of targets, 5534 tokens, 16.38s
+width 8 group 3 fraction 0.0: wrong_answer, 0.00 of targets, 4355 tokens, 48.26s
+width 8 group 10 fraction 0.5: wrong_answer, 0.00 of targets, 5686 tokens, 21.81s
+width 8 group 10 fraction 1.0: wrong_answer, 0.00 of targets, 5595 tokens, 22.36s
+width 8 group 8 fraction 1.0: wrong_answer, 0.00 of targets, 3342 tokens, 34.01s
+width 8 group 4 fraction 1.0: wrong_answer, 0.00 of targets, 4383 tokens, 51.88s
+width 2, fraction 0.0: 3/10 all correct, target accuracy 0.30, 1726 tokens, 1055 critical output tokens
+width 2, fraction 0.5: 2/10 all correct, target accuracy 0.20, 1684 tokens, 1006 critical output tokens
+width 2, fraction 1.0: 0/10 all correct, target accuracy 0.00, 1484 tokens, 831 critical output tokens
+width 4, fraction 0.0: 2/10 all correct, target accuracy 0.33, 3060 tokens, 1260 critical output tokens
+width 4, fraction 0.5: 0/10 all correct, target accuracy 0.03, 3134 tokens, 1409 critical output tokens
+width 4, fraction 1.0: 1/10 all correct, target accuracy 0.10, 3314 tokens, 1541 critical output tokens
+width 8, fraction 0.0: 0/10 all correct, target accuracy 0.00, 3282 tokens, 995 critical output tokens
+width 8, fraction 0.5: 0/10 all correct, target accuracy 0.00, 3455 tokens, 952 critical output tokens
+width 8, fraction 1.0: 0/10 all correct, target accuracy 0.01, 3489 tokens, 1316 critical output tokens
+width 16, fraction 0.0: 0/10 all correct, target accuracy 0.00, 0 tokens, 0 critical output tokens
+width 16, fraction 0.5: 0/10 all correct, target accuracy 0.00, 0 tokens, 0 critical output tokens
+width 16, fraction 1.0: 0/10 all correct, target accuracy 0.00, 0 tokens, 0 critical output tokens
+Saved 120 results to results/wide_planner/p12b/gemma-3-4b-it/b8000/hierarchy.jsonl
+=== hierarchy, budget 16000, 120 problems
+width 2 group 4 fraction 0.5: invalid_plan, 0.00 of targets, 741 tokens, 3.77s
+width 2 group 4 fraction 0.0: invalid_plan, 0.00 of targets, 741 tokens, 3.86s
+width 2 group 4 fraction 1.0: invalid_plan, 0.00 of targets, 721 tokens, 3.92s
+width 2 group 2 fraction 0.5: wrong_answer, 0.00 of targets, 1269 tokens, 9.87s
+width 2 group 2 fraction 0.0: wrong_answer, 0.00 of targets, 1267 tokens, 11.13s
+width 2 group 6 fraction 1.0: wrong_answer, 0.00 of targets, 1216 tokens, 7.93s
+width 2 group 3 fraction 1.0: wrong_answer, 0.00 of targets, 1654 tokens, 13.35s
+width 2 group 5 fraction 1.0: wrong_answer, 0.00 of targets, 1368 tokens, 13.77s
+width 2 group 5 fraction 0.5: correct, 1.00 of targets, 1855 tokens, 14.41s
+width 2 group 3 fraction 0.5: correct, 1.00 of targets, 1810 tokens, 14.51s
+width 2 group 2 fraction 1.0: wrong_answer, 0.00 of targets, 1718 tokens, 14.62s
+width 2 group 7 fraction 0.0: wrong_answer, 0.00 of targets, 1454 tokens, 11.02s
+width 2 group 1 fraction 1.0: wrong_answer, 0.00 of targets, 1557 tokens, 15.45s
+width 2 group 5 fraction 0.0: wrong_answer, 0.00 of targets, 1855 tokens, 16.11s
+width 2 group 6 fraction 0.0: wrong_answer, 0.00 of targets, 1647 tokens, 16.45s
+width 2 group 1 fraction 0.5: correct, 1.00 of targets, 1743 tokens, 17.92s
+width 2 group 6 fraction 0.5: wrong_answer, 0.00 of targets, 1649 tokens, 14.24s
+width 2 group 3 fraction 0.0: correct, 1.00 of targets, 2498 tokens, 18.01s
+width 2 group 1 fraction 0.0: correct, 1.00 of targets, 1743 tokens, 19.6s
+width 2 group 9 fraction 1.0: invalid_plan, 0.00 of targets, 1107 tokens, 9.69s
+width 2 group 9 fraction 0.0: invalid_plan, 0.00 of targets, 1172 tokens, 9.92s
+width 2 group 7 fraction 1.0: wrong_answer, 0.00 of targets, 1454 tokens, 14.34s
+width 2 group 7 fraction 0.5: wrong_answer, 0.00 of targets, 1649 tokens, 15.88s
+width 2 group 9 fraction 0.5: invalid_plan, 0.00 of targets, 1235 tokens, 11.48s
+width 2 group 8 fraction 0.0: wrong_answer, 0.00 of targets, 1459 tokens, 14.45s
+width 4 group 1 fraction 0.0: wrong_answer, 0.00 of targets, 2469 tokens, 11.51s
+width 2 group 8 fraction 0.5: wrong_answer, 0.00 of targets, 1463 tokens, 14.75s
+width 4 group 1 fraction 0.5: wrong_answer, 0.00 of targets, 2502 tokens, 11.24s
+width 2 group 8 fraction 1.0: wrong_answer, 0.00 of targets, 1472 tokens, 16.13s
+width 4 group 2 fraction 0.5: wrong_answer, 0.00 of targets, 2789 tokens, 12.58s
+width 2 group 10 fraction 0.5: wrong_answer, 0.00 of targets, 1773 tokens, 17.67s
+width 2 group 10 fraction 1.0: wrong_answer, 0.00 of targets, 1858 tokens, 19.72s
+width 4 group 2 fraction 1.0: wrong_answer, 0.00 of targets, 2784 tokens, 12.73s
+width 4 group 2 fraction 0.0: wrong_answer, 0.50 of targets, 3350 tokens, 19.46s
+width 4 group 4 fraction 0.0: wrong_answer, 0.00 of targets, 2818 tokens, 11.54s
+width 4 group 4 fraction 1.0: wrong_answer, 0.25 of targets, 2194 tokens, 10.13s
+width 4 group 4 fraction 0.5: wrong_answer, 0.00 of targets, 2807 tokens, 12.8s
+width 4 group 1 fraction 1.0: wrong_answer, 0.00 of targets, 2411 tokens, 21.89s
+width 4 group 7 fraction 1.0: wrong_answer, 0.25 of targets, 2364 tokens, 9.96s
+width 4 group 7 fraction 0.5: wrong_answer, 0.00 of targets, 2276 tokens, 10.47s
+width 4 group 8 fraction 0.5: wrong_answer, 0.00 of targets, 2657 tokens, 10.73s
+width 4 group 8 fraction 1.0: wrong_answer, 0.00 of targets, 2678 tokens, 11.22s
+width 4 group 7 fraction 0.0: correct, 1.00 of targets, 3294 tokens, 15.15s
+width 4 group 8 fraction 0.0: wrong_answer, 0.25 of targets, 2952 tokens, 15.64s
+width 4 group 5 fraction 0.0: correct, 1.00 of targets, 3390 tokens, 26.23s
+width 4 group 9 fraction 0.0: wrong_answer, 0.00 of targets, 2427 tokens, 9.48s
+width 4 group 5 fraction 1.0: wrong_answer, 0.00 of targets, 3335 tokens, 29.61s
+width 4 group 3 fraction 0.0: wrong_answer, 0.25 of targets, 3575 tokens, 36.74s
+width 4 group 9 fraction 1.0: wrong_answer, 0.00 of targets, 2935 tokens, 22.3s
+width 4 group 5 fraction 0.5: wrong_answer, 0.75 of targets, 4445 tokens, 44.13s
+width 8 group 1 fraction 0.0: wrong_answer, 0.00 of targets, 5657 tokens, 19.99s
+width 4 group 6 fraction 0.0: wrong_answer, 0.00 of targets, 3503 tokens, 42.31s
+width 4 group 3 fraction 1.0: wrong_answer, 0.50 of targets, 4058 tokens, 49.44s
+width 4 group 6 fraction 0.5: wrong_answer, 0.00 of targets, 3465 tokens, 43.15s
+width 8 group 1 fraction 0.5: wrong_answer, 0.00 of targets, 5683 tokens, 19.51s
+width 4 group 3 fraction 0.5: wrong_answer, 0.25 of targets, 4054 tokens, 51.61s
+width 4 group 6 fraction 1.0: wrong_answer, 0.00 of targets, 4118 tokens, 43.13s
+width 4 group 10 fraction 1.0: wrong_answer, 0.00 of targets, 3172 tokens, 29.49s
+width 2 group 10 fraction 0.0: wrong_answer, 0.00 of targets, 4017 tokens, 69.25s
+width 4 group 9 fraction 0.5: wrong_answer, 0.00 of targets, 4508 tokens, 39.26s
+width 4 group 10 fraction 0.5: wrong_answer, 0.00 of targets, 3358 tokens, 40.43s
+width 8 group 6 fraction 0.0: wrong_answer, 0.00 of targets, 5392 tokens, 21.33s
+width 8 group 1 fraction 1.0: wrong_answer, 0.00 of targets, 8190 tokens, 51.36s
+width 8 group 6 fraction 0.5: wrong_answer, 0.00 of targets, 4848 tokens, 19.54s
+width 4 group 10 fraction 0.0: wrong_answer, 0.00 of targets, 5776 tokens, 67.09s
+width 8 group 7 fraction 0.0: invalid_plan, 0.00 of targets, 2078 tokens, 20.05s
+width 8 group 2 fraction 0.0: wrong_answer, 0.38 of targets, 7254 tokens, 70.96s
+width 8 group 3 fraction 1.0: wrong_answer, 0.00 of targets, 4922 tokens, 57.36s
+width 8 group 6 fraction 1.0: wrong_answer, 0.00 of targets, 4921 tokens, 26.82s
+width 8 group 3 fraction 0.0: wrong_answer, 0.00 of targets, 5556 tokens, 63.45s
+width 8 group 4 fraction 0.0: wrong_answer, 0.12 of targets, 6513 tokens, 64.43s
+width 8 group 4 fraction 1.0: wrong_answer, 0.00 of targets, 6281 tokens, 64.32s
+width 8 group 5 fraction 0.5: length_limit, 0.00 of targets, 4000 tokens, 59.99s
+width 8 group 2 fraction 1.0: wrong_answer, 0.00 of targets, 5255 tokens, 70.69s
+width 8 group 5 fraction 0.0: wrong_answer, 0.88 of targets, 9462 tokens, 67.85s
+width 8 group 8 fraction 0.5: wrong_answer, 0.00 of targets, 5592 tokens, 16.4s
+width 8 group 8 fraction 0.0: wrong_answer, 0.00 of targets, 5871 tokens, 18.75s
+width 8 group 3 fraction 0.5: wrong_answer, 0.00 of targets, 7345 tokens, 79.38s
+width 8 group 10 fraction 0.0: wrong_answer, 0.00 of targets, 5790 tokens, 17.98s
+width 8 group 9 fraction 0.5: wrong_answer, 0.38 of targets, 7021 tokens, 28.08s
+width 8 group 10 fraction 1.0: wrong_answer, 0.00 of targets, 6059 tokens, 22.53s
+width 8 group 10 fraction 0.5: wrong_answer, 0.00 of targets, 6017 tokens, 24.21s
+width 8 group 9 fraction 0.0: wrong_answer, 0.88 of targets, 7150 tokens, 32.24s
+width 8 group 5 fraction 1.0: wrong_answer, 0.00 of targets, 6752 tokens, 83.85s
+width 8 group 2 fraction 0.5: wrong_answer, 0.25 of targets, 9298 tokens, 98.07s
+width 16 group 1 fraction 0.5: wrong_answer, 0.00 of targets, 4808 tokens, 27.92s
+width 16 group 1 fraction 0.0: wrong_answer, 0.00 of targets, 11592 tokens, 31.66s
+width 8 group 4 fraction 0.5: wrong_answer, 0.50 of targets, 9597 tokens, 106.12s
+width 16 group 2 fraction 0.0: wrong_answer, 0.00 of targets, 11426 tokens, 33.07s
+width 8 group 8 fraction 1.0: wrong_answer, 0.00 of targets, 5680 tokens, 54.57s
+width 16 group 3 fraction 0.0: length_limit, 0.00 of targets, 4000 tokens, 23.95s
+width 16 group 3 fraction 1.0: length_limit, 0.00 of targets, 4000 tokens, 22.9s
+width 16 group 4 fraction 0.0: length_limit, 0.00 of targets, 4000 tokens, 23.06s
+width 16 group 2 fraction 0.5: wrong_answer, 0.00 of targets, 11338 tokens, 33.61s
+width 16 group 2 fraction 1.0: wrong_answer, 0.06 of targets, 11683 tokens, 27.79s
+width 16 group 4 fraction 0.5: wrong_answer, 0.00 of targets, 9696 tokens, 22.77s
+width 16 group 5 fraction 0.0: wrong_answer, 0.00 of targets, 9353 tokens, 19.82s
+width 16 group 4 fraction 1.0: length_limit, 0.00 of targets, 4000 tokens, 24.12s
+width 16 group 3 fraction 0.5: wrong_answer, 0.06 of targets, 13642 tokens, 31.62s
+width 16 group 5 fraction 0.5: wrong_answer, 0.00 of targets, 9516 tokens, 20.27s
+width 16 group 1 fraction 1.0: wrong_answer, 0.00 of targets, 10883 tokens, 58.83s
+width 8 group 9 fraction 1.0: wrong_answer, 0.00 of targets, 6693 tokens, 67.48s
+width 16 group 5 fraction 1.0: length_limit, 0.00 of targets, 4000 tokens, 23.85s
+width 8 group 7 fraction 1.0: wrong_answer, 0.00 of targets, 9606 tokens, 94.48s
+width 16 group 7 fraction 0.0: length_limit, 0.00 of targets, 4000 tokens, 23.12s
+width 16 group 7 fraction 0.5: length_limit, 0.00 of targets, 4000 tokens, 22.92s
+width 16 group 6 fraction 0.5: wrong_answer, 0.00 of targets, 8962 tokens, 25.9s
+width 16 group 7 fraction 1.0: length_limit, 0.00 of targets, 4000 tokens, 22.72s
+width 16 group 8 fraction 0.0: wrong_answer, 0.00 of targets, 9948 tokens, 23.11s
+width 16 group 6 fraction 1.0: wrong_answer, 0.00 of targets, 8560 tokens, 26.78s
+width 16 group 8 fraction 1.0: length_limit, 0.00 of targets, 4000 tokens, 22.19s
+width 16 group 9 fraction 0.5: length_limit, 0.00 of targets, 4000 tokens, 21.84s
+width 16 group 6 fraction 0.0: wrong_answer, 0.00 of targets, 10437 tokens, 34.34s
+width 16 group 10 fraction 0.0: length_limit, 0.00 of targets, 4000 tokens, 20.2s
+width 16 group 9 fraction 0.0: wrong_answer, 0.00 of targets, 10839 tokens, 29.88s
+width 16 group 8 fraction 0.5: wrong_answer, 0.00 of targets, 4867 tokens, 34.32s
+width 16 group 9 fraction 1.0: wrong_answer, 0.00 of targets, 8714 tokens, 24.07s
+width 16 group 10 fraction 1.0: length_limit, 0.00 of targets, 4000 tokens, 18.76s
+width 16 group 10 fraction 0.5: wrong_answer, 0.06 of targets, 10361 tokens, 21.22s
+width 8 group 7 fraction 0.5: wrong_answer, 0.00 of targets, 11781 tokens, 124.55s
+width 2, fraction 0.0: 2/10 all correct, target accuracy 0.20, 1785 tokens, 1093 critical output tokens
+width 2, fraction 0.5: 3/10 all correct, target accuracy 0.30, 1519 tokens, 849 critical output tokens
+width 2, fraction 1.0: 0/10 all correct, target accuracy 0.00, 1412 tokens, 768 critical output tokens
+width 4, fraction 0.0: 2/10 all correct, target accuracy 0.30, 3355 tokens, 1536 critical output tokens
+width 4, fraction 0.5: 0/10 all correct, target accuracy 0.10, 3286 tokens, 1536 critical output tokens
+width 4, fraction 1.0: 0/10 all correct, target accuracy 0.10, 3005 tokens, 1479 critical output tokens
+width 8, fraction 0.0: 0/10 all correct, target accuracy 0.23, 6072 tokens, 2330 critical output tokens
+width 8, fraction 0.5: 0/10 all correct, target accuracy 0.11, 7118 tokens, 3588 critical output tokens
+width 8, fraction 1.0: 0/10 all correct, target accuracy 0.00, 6436 tokens, 3535 critical output tokens
+width 16, fraction 0.0: 0/10 all correct, target accuracy 0.00, 7960 tokens, 1547 critical output tokens
+width 16, fraction 0.5: 0/10 all correct, target accuracy 0.01, 8119 tokens, 1579 critical output tokens
+width 16, fraction 1.0: 0/10 all correct, target accuracy 0.01, 6384 tokens, 1665 critical output tokens
+Saved 120 results to results/wide_planner/p12b/gemma-3-4b-it/b16000/hierarchy.jsonl
