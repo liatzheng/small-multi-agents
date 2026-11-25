@@ -74,10 +74,11 @@ def parse_answer(text, problem):
 
 
 def extract_report(text):
-    matches = list(REPORT_LINE.finditer(text))
-    if not matches:
+    """Return everything after the first REPORT: marker, dropping markers that repeat per line."""
+    match = REPORT_LINE.search(text)
+    if not match:
         return None
-    report = text[matches[-1].end():].strip().strip("*`").strip()
+    report = REPORT_LINE.sub("", text[match.end():]).strip().strip("*`").strip()
     return report or None
 
 
