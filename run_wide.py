@@ -2,6 +2,7 @@
 
 import argparse
 import functools
+import http.client
 import json
 import os
 import re
@@ -110,7 +111,10 @@ class OpenRouterChat:
                 if error.code not in RETRY_CODES:
                     raise RuntimeError(f"OpenRouter HTTP {error.code}: {detail}") from error
                 problem = f"HTTP {error.code}: {detail}"
-            except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+            # OSError covers URLError and timeouts, plus socket errors such as "No route to
+            # host" raised while reading a response after the network drops. HTTPException
+            # covers a response cut off mid-body (IncompleteRead).
+            except (OSError, http.client.HTTPException) as error:
                 problem = repr(error)
             else:
                 choices = data.get("choices") or []
