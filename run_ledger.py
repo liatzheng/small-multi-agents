@@ -1,6 +1,7 @@
 """Run the single agent, ensemble, and hierarchies on ledger aggregation problems through OpenRouter."""
 
 import argparse
+import functools
 import json
 import math
 import os
@@ -40,10 +41,21 @@ RECONSTRUCT_PROMPT = (
     "answer the question, step by step. " + ADDING + " End your response with the final "
     "answer on its own line in the form {form}"
 )
-SYSTEMS = ("single_agent", "ensemble", "hierarchy_oracle", "hierarchy_reconstruct", "hierarchy")
+MERGE_PROMPT = (
+    "You are a merger on a team. Workers each followed the instruction below on one store's "
+    "ledger and wrote a report. Each input below is either such a report or a merged report "
+    "covering several stores. You cannot see the ledgers. Combine the inputs into one report in "
+    "the same format that covers all of their stores, step by step. " + ADDING + " Then write a "
+    "line starting with REPORT: followed by the combined report. Your team sees only what comes "
+    "after REPORT:."
+)
+SYSTEMS = ("single_agent", "ensemble", "hierarchy_oracle", "hierarchy_reconstruct", "hierarchy",
+           "hierarchy_tree_reconstruct", "hierarchy_tree")
 # The reconstructor's share is held back from the workers so they cannot starve it.
 RECONSTRUCT_SHARE = 4
 PLAN_SHARE = 8
+# A tree merge gives each merger at most this many reports, so no call adds a wide list.
+FAN_IN = 4
 
 REPORT_LINE = re.compile(r"^[\W_]*report[\W_]*:[*_\s]*", re.I | re.M)
 ANSWER_LINE = re.compile(r"answer[*_\s]*:[*_\s]*(.+)$", re.I | re.M)
@@ -189,20 +201,64 @@ def worker_steps(problem, instruction, cap, seed, calls):
     return reports
 
 
-def reconstruct_steps(problem, instruction, reports, cap, seed, calls):
-    form = problem["answer_format"]
-    body = "\n\n".join(f"Store {i} report:\n{r or '(no report)'}"
-                       for i, r in enumerate(reports, start=1))
-    messages = [{"role": "system", "content": RECONSTRUCT_PROMPT.format(form=form)},
-                {"role": "user", "content": f"Question: {problem['question']}\n\n"
-                                            f"Instruction given to each worker:\n{instruction}\n\n"
-                                            f"{body}"}]
-    (reply,) = yield [{"messages": messages, "cap": cap,
-                       "seed": seed + 1 + len(problem["stores"])}]
+def team_messages(system, problem, instruction, items):
+    """Show labelled reports, such as ("Store 3", text) or ("Stores 1-4", text), with context."""
+    body = "\n\n".join(f"{label} report:\n{r or '(no report)'}" for label, r in items)
+    return [{"role": "system", "content": system},
+            {"role": "user", "content": f"Question: {problem['question']}\n\n"
+                                        f"Instruction given to each worker:\n{instruction}\n\n"
+                                        f"{body}"}]
+
+
+def reconstruct_steps(problem, instruction, items, cap, seed, calls):
+    system = RECONSTRUCT_PROMPT.format(form=problem["answer_format"])
+    messages = team_messages(system, problem, instruction, items)
+    (reply,) = yield [{"messages": messages, "cap": cap, "seed": seed}]
     prediction, format_ok = parse_answer(reply["final_text"], problem)
     calls.append({"stage": "reconstructor", "messages": messages, **reply,
                   "status": reply_status(reply, prediction)})
     return prediction, reply_status(reply, prediction)
+
+
+def merge_steps(problem, instruction, reports, budget, seed, calls, tree):
+    """Merge worker reports in one reconstructor call, or in a tree of mergers when tree is set.
+
+    Each tree level runs its mergers in parallel, and the budget left after the workers is
+    split evenly over the merge calls still to come.
+    """
+    def label(lo, hi):
+        return f"Store {lo}" if lo == hi else f"Stores {lo}-{hi}"
+
+    items = [((i, i), r) for i, r in enumerate(reports, start=1)]
+    sizes, m = [], len(items)
+    while tree and m > FAN_IN:
+        m = math.ceil(m / FAN_IN)
+        sizes.append(m)
+    pending = sum(sizes) + 1
+    seed += 1 + len(reports)
+    for level, size in enumerate(sizes, start=1):
+        left = budget - sum(c["total_tokens"] for c in calls)
+        groups = [items[g * FAN_IN:(g + 1) * FAN_IN] for g in range(size)]
+        requests = []
+        for g, group in enumerate(groups):
+            messages = team_messages(MERGE_PROMPT, problem, instruction,
+                                     [(label(*span), r) for span, r in group])
+            requests.append({"messages": messages, "cap": left // pending, "seed": seed + g})
+        replies = yield requests
+        seed += len(groups)
+        pending -= len(groups)
+        merged = []
+        for group, request, reply in zip(groups, requests, replies):
+            report = extract_report(reply["final_text"]) if reply["stop_reason"] == "stop" else None
+            span = (group[0][0][0], group[-1][0][1])
+            calls.append({"stage": "merger", "level": level, "stores": list(span),
+                          "messages": request["messages"], **reply,
+                          "status": reply_status(reply, report), "report": report})
+            merged.append((span, report))
+        items = merged
+    left = budget - sum(c["total_tokens"] for c in calls)
+    return (yield from reconstruct_steps(
+        problem, instruction, [(label(*span), r) for span, r in items], left, seed, calls))
 
 
 def report_fields(calls):
@@ -222,7 +278,7 @@ def oracle_steps(problem, budget, seed):
     return finish(problem, budget, calls, prediction, **fields)
 
 
-def reconstruct_oracle_steps(problem, budget, seed):
+def reconstruct_oracle_steps(problem, budget, seed, tree=False):
     """Workers follow the correct instruction and a model merges their reports."""
     calls = []
     held = budget // RECONSTRUCT_SHARE
@@ -230,15 +286,15 @@ def reconstruct_oracle_steps(problem, budget, seed):
     instruction = problem["oracle_instruction"]
     reports = yield from worker_steps(problem, instruction, cap, seed, calls)
     code_merge = merge_reports(problem, reports)
-    left = budget - sum(c["total_tokens"] for c in calls)
-    prediction, status = yield from reconstruct_steps(problem, instruction, reports, left, seed, calls)
+    prediction, status = yield from merge_steps(
+        problem, instruction, reports, budget, seed, calls, tree)
     fields = {**report_fields(calls), "code_merge_correct": code_merge == problem["answer"]}
     if status != "answered":
         fields["status"] = status
     return finish(problem, budget, calls, prediction, **fields)
 
 
-def hierarchy_steps(problem, budget, seed):
+def hierarchy_steps(problem, budget, seed, tree=False):
     """A planner writes the worker instruction, workers report, and a model merges the reports."""
     example = problem["stores"][0]
     messages = [{"role": "system", "content": PLAN_PROMPT},
@@ -254,8 +310,8 @@ def hierarchy_steps(problem, budget, seed):
     held = budget // RECONSTRUCT_SHARE
     cap = (budget - reply["total_tokens"] - held) // len(problem["stores"])
     reports = yield from worker_steps(problem, instruction, cap, seed, calls)
-    left = budget - sum(c["total_tokens"] for c in calls)
-    prediction, status = yield from reconstruct_steps(problem, instruction, reports, left, seed, calls)
+    prediction, status = yield from merge_steps(
+        problem, instruction, reports, budget, seed, calls, tree)
     fields = {**report_fields(calls), "instruction": instruction}
     if status != "answered":
         fields["status"] = status
@@ -268,6 +324,8 @@ SOLVERS = {
     "hierarchy_oracle": oracle_steps,
     "hierarchy_reconstruct": reconstruct_oracle_steps,
     "hierarchy": hierarchy_steps,
+    "hierarchy_tree_reconstruct": functools.partial(reconstruct_oracle_steps, tree=True),
+    "hierarchy_tree": functools.partial(hierarchy_steps, tree=True),
 }
 
 
