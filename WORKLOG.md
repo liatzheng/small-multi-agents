@@ -287,24 +287,103 @@ Target accuracy at 16k, with 4/8/16/32 stores:
 - **Totals and averages:** no clear change, within the noise of 10 groups.
 - An `OSError` ("No route to host") stopped the first attempt after 85 problems. `run_wide.py` now retries on any `OSError`, and the run resumed.
 
-## 2026-11-25: main run, `results/ledger_main/` (partial)
+## 2026-11-25 to 11-27: main run, `results/ledger_main/`
 
-The main run uses 30 groups × 4, 8, 16 and 32 stores × 3 questions (seed 7301, 8 rows, 12B), which keeps it separate from the calibration problems. It ran from a queue script (scratchpad `night.sh`) with automatic resume.
+The main run uses 30 groups × 4, 8, 16 and 32 stores × 3 questions (seed 7301, 8 rows, 12B for every role), which keeps it separate from the calibration problems. It runs from a queue script (scratchpad `night.sh`) with automatic resume. The queue is 12B at 16k, then 12B at 8k, then the 27B (fp8) single agent and ensemble at both budgets.
+
+Run history:
 
 - An `IncompleteRead` (a response cut off mid-body) failed one step. The queue resumed it, and `run_wide.py` now also retries on `http.client.HTTPException`.
-- Claude Code stopped the queue overnight because the Mac ran low on memory. The run itself had not failed.
-- Finished at 16k: `single_agent`, `ensemble` and `hierarchy_oracle` (360 each), plus `hierarchy_reconstruct` (54/360).
-- Not started: the rest of 16k, all of 8k, and the 27B single agent and ensemble. Restart with `--resume`.
+- On 11-25, Claude Code stopped the queue because the Mac ran low on memory, after 16k `single_agent`, `ensemble` and `hierarchy_oracle` and 54/360 of `hierarchy_reconstruct`. Natalia committed the partial results.
+- On 11-27 the queue was restarted with `--resume` and skipped finished problems. DeepInfra rate-limited heavily early on (about 3,900 retries), but every call went through.
+- The queue finished on 11-27: all 7 systems at both budgets for 12B, and the 27B single agent and ensemble at both budgets.
 
-Target accuracy at 16k, with 4/8/16/32 stores:
+### 16k, complete
+
+Target accuracy with 4/8/16/32 stores:
 
 | system | total | average | customer totals |
 |---|---|---|---|
 | single agent | 0.40/0.27/0.00/0.00 | 0.73/0.43/0.03/0.10 | 0.88/0.64/0.12/0.03 |
-| ensemble | 0.43/0.07/0.00/0.00 | 0.87/0.43/0.00/0.03 | 0.94/0.64/0.15/0.00 |
+| ensemble (B/3) | 0.43/0.07/0.00/0.00 | 0.87/0.43/0.00/0.03 | 0.94/0.64/0.15/0.00 |
 | oracle split, code merge | 1.00/0.83/0.87/0.70 | 0.53/0.63/0.47/0.33 | 0.88/0.82/0.71/0.41 |
+| oracle split, flat model merge | 1.00/0.93/0.87/0.50 | 0.57/0.60/0.43/0.27 | 0.86/0.78/0.34/0.01 |
+| oracle split, tree merge | 1.00/0.87/0.77/0.27 | 0.53/0.63/0.50/0.33 | 0.86/0.76/0.62/0.00 |
+| model planner, flat merge | 0.73/0.83/0.67/0.23 | 0.37/0.17/0.17/0.10 | 0.90/0.72/0.15/0.00 |
+| model planner, tree merge | 0.83/0.80/0.70/0.20 | 0.23/0.27/0.20/0.07 | 0.90/0.70/0.30/0.00 |
 
-The critical path for the oracle split stays at 79-87 output tokens for totals at every width, against 414-1209 for the single agent. The pattern from the calibration holds with 30 groups per cell.
+Critical-path output tokens with 4/8/16/32 stores:
+
+| system | total | average | customer totals |
+|---|---|---|---|
+| single agent | 414/532/632/1209 | 366/449/449/772 | 631/902/1631/2835 |
+| ensemble | 527/710/672/1234 | 402/551/595/1057 | 754/980/1851/3028 |
+| oracle split, code merge | 79/83/87/84 | 175/206/229/260 | 114/122/133/148 |
+| oracle split, flat model merge | 196/258/374/511 | 375/550/647/664 | 644/1014/1693/2437 |
+| oracle split, tree merge | 203/284/324/406 | 361/598/768/902 | 605/1121/1576/799 |
+| model planner, flat merge | 269/366/430/585 | 462/502/606/693 | 1103/1574/1716/349 |
+| model planner, tree merge | 269/417/429/542 | 456/576/786/771 | 1071/1658/1799/936 |
+
+The 32-store customer-totals critical tokens for the tree and the model planner are low because merge calls starve and stop early, not because they are fast.
+
+### 8k, complete
+
+Target accuracy with 4/8/16/32 stores:
+
+| system | total | average | customer totals |
+|---|---|---|---|
+| single agent | 0.30/0.27/0.00/0.00 | 0.73/0.40/0.00/0.03 | 0.91/0.65/0.14/0.00 |
+| ensemble (B/3) | 0.30/0.13/0.00/0.00 | 0.80/0.60/0.00/0.03 | 0.91/0.65/0.00/0.00 |
+| oracle split, code merge | 1.00/0.90/0.87/0.00 | 0.53/0.60/0.43/0.00 | 0.88/0.82/0.67/0.00 |
+| oracle split, flat model merge | 1.00/0.93/0.87/0.00 | 0.57/0.53/0.47/0.00 | 0.86/0.77/0.30/0.00 |
+| model planner, flat merge | 0.77/0.77/0.67/0.00 | 0.33/0.17/0.10/0.00 | 0.89/0.55/0.00/0.00 |
+| oracle split, tree merge | 1.00/0.87/0.77/0.00 | 0.53/0.63/0.43/0.00 | 0.87/0.75/0.00/0.00 |
+| model planner, tree merge | 0.80/0.87/0.53/0.00 | 0.27/0.23/0.13/0.03 | 0.81/0.14/0.00/0.00 |
+
+At 32 stores every split system and the ensemble starve on every problem: each worker gets 250 tokens or fewer, and the prompt uses most of them. The single agent never starves. Below 32 stores, the 8k results match 16k for the flat systems, so their gains do not depend on a large budget until B/N gets too small.
+
+The tree merge starves earlier at 8k. With the oracle split, every 16-store customer-totals problem and 70% of 16-store averages starve. With the model planner, 73% of 8-store customer-totals problems starve (0.14, against 0.70 at 16k). The even split of the merge budget is the bottleneck.
+
+### 27B single agent and ensemble
+
+Gemma 3 27B (deepinfra/fp8) on the same 360 problems, target accuracy with 4/8/16/32 stores, next to the 12B oracle split with code merge:
+
+| system | budget | total | average | customer totals |
+|---|---|---|---|---|
+| 27B single agent | 16k | 1.00/0.90/0.80/0.17 | 1.00/0.83/0.53/0.57 | 0.91/0.83/0.30/0.02 |
+| 27B ensemble (B/3) | 16k | 1.00/0.97/0.93/0.07 | 0.97/0.83/0.60/0.73 | 0.93/0.85/0.30/0.00 |
+| 12B oracle split, code merge | 16k | 1.00/0.83/0.87/0.70 | 0.53/0.63/0.47/0.33 | 0.88/0.82/0.71/0.41 |
+| 27B single agent | 8k | 1.00/0.93/0.83/0.13 | 0.87/0.70/0.40/0.60 | 0.92/0.82/0.32/0.02 |
+| 27B ensemble (B/3) | 8k | 1.00/0.97/0.87/0.00 | 0.97/0.80/0.63/0.00 | 0.92/0.82/0.07/0.00 |
+| 12B oracle split, code merge | 8k | 1.00/0.90/0.87/0.00 | 0.53/0.60/0.43/0.00 | 0.88/0.82/0.67/0.00 |
+
+27B critical-path output tokens at 16k:
+
+| system | total | average | customer totals |
+|---|---|---|---|
+| 27B single agent | 402/454/785/1348 | 312/428/603/991 | 587/936/1734/2669 |
+| 27B ensemble | 464/464/837/1883 | 344/496/739/1089 | 629/1053/1987/2890 |
+
+The 27B single agent never starves at either budget. At 8k the 27B ensemble starves on every 32-store problem and on 83% of 16-store customer-totals problems, the same pattern as the 12B ensemble: starvation comes from the split, not the model size.
+
+### Findings from the main run
+
+- **The calibration pattern holds on held-out problems with 30 groups per cell.**
+- **Totals:** every split system beats the single agent from 8 stores up. The fully model-run hierarchy (12B planner, workers and reconstructor) scores 0.67 at 16 stores at both budgets, against 0.00 for the single agent.
+- **Averages:** the model planner's average scores (0.10-0.37) sit below the oracle split's (0.33-0.63). This matches the calibration finding that planners often leave out the count. At 4 stores the single agent beats every split system, because worker filter slips compound.
+- **Customer totals:** the flat model merge is the bottleneck (0.34 against 0.71 with code merging at 16 stores, 16k). The tree merge recovers most of it (0.62), and with the model planner it doubles 0.15 to 0.30.
+- **32 stores:** this is the B/N limit at 8k for every split system, and at 16k for the tree merge's level-1 mergers. Only the oracle split with code merge stays strong at 32 stores and 16k (0.70 on totals).
+- **Time:** the oracle split's critical path is nearly flat with width (79-87 tokens for totals), while the single agent's grows about 3x from 4 to 32 stores. Model hierarchies add planner and merge rounds but stay below the single agent at 16 and 32 stores.
+- **27B against 12B structure:** the 27B single agent closes most of the gap up to 16 stores on totals and beats every 12B hierarchy on averages at every width. The 12B oracle split still wins on the largest tasks at 16k: totals at 32 stores (0.70 against 0.17), customer totals at 16 stores (0.71 against 0.30) and 32 stores (0.41 against 0.02). A bigger model moves the point where splitting pays off from about 8 stores to 16-32; it does not remove it. The critical-path gain holds at every width, and the 27B failures at 32 stores are errors over a long computation, not starvation. The 12B model planner is below the 27B single agent almost everywhere, so planning remains the weak link.
+
+### Next tests, in priority order
+
+1. A merge budget proportional to each call's work (values to add), to test whether the 32-store tree collapse is a budgeting artifact.
+2. A 27B planner and reconstructor with 12B workers, to see whether a bigger lead fixes the average plan and the wide merge, compared with the 27B single agent at similar cost.
+3. Dependence inside the ledger task (for example a currency rate defined in another store's ledger), to restore the proposal's dependence axis and measure its cost in rounds.
+4. A question where merging needs everything (median sale, distinct customers), where the prediction is that the hierarchy loses. This bounds the claim.
+5. Another model family at similar sizes, once the design is settled.
+6. Bootstrap confidence intervals on the 30-group cells.
 
 ### Not yet run on the chain task
 
@@ -316,4 +395,5 @@ The critical path for the oracle split stays at 79-87 output tokens for totals a
 - Tell Lily about the switch to Gemma, the wide-task design, and the reversed interdependence prediction.
 - Check with Lia whether her runs depend on anything here. Nothing shared was changed.
 - The OpenRouter key was pasted into the chat. Rotate it after the project.
-- The new files and results are not committed yet. `.venv-or/` in the repo is a local environment and should not be committed.
+- Code and results through 11-27 are committed. `.venv-or/` in the repo is a local environment and should not be committed.
+- `__pycache__/` is tracked since commit b70e92e. It should be untracked and added to `.gitignore`.
