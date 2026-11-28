@@ -376,11 +376,58 @@ The 27B single agent never starves at either budget. At 8k the 27B ensemble star
 - **Time:** the oracle split's critical path is nearly flat with width (79-87 tokens for totals), while the single agent's grows about 3x from 4 to 32 stores. Model hierarchies add planner and merge rounds but stay below the single agent at 16 and 32 stores.
 - **27B against 12B structure:** the 27B single agent closes most of the gap up to 16 stores on totals and beats every 12B hierarchy on averages at every width. The 12B oracle split still wins on the largest tasks at 16k: totals at 32 stores (0.70 against 0.17), customer totals at 16 stores (0.71 against 0.30) and 32 stores (0.41 against 0.02). A bigger model moves the point where splitting pays off from about 8 stores to 16-32; it does not remove it. The critical-path gain holds at every width, and the 27B failures at 32 stores are errors over a long computation, not starvation. The 12B model planner is below the 27B single agent almost everywhere, so planning remains the weak link.
 
+## 2026-11-27: dependence in the ledger task, `results/ledger_depth/`
+
+### Why and design
+
+The ledger task had no interdependence, the proposal's second axis. Natalia chose to add it for preliminary poster results.
+
+- `generate_ledger.py --linked N --depths ...` gives N stores one extra row like `Eli, tools, one tenth of Store 7's total, rounded down`, inserted at a random position. A store's total includes its own linked row, so the links form chains, and the deepest chain is exactly the given depth.
+- Every depth reuses the group's ledgers. Depth 0 is the control: the same amounts as depth 1, written as plain numbers, so depth 0 against depth 1 is the cost of a reference row and depth 1 against 8 is the cost of chain depth with the number of linked stores fixed.
+- The default generator output is unchanged (checked byte for byte against `results/ledger_main/problems.jsonl`). An independent resolver (scratchpad `check_depth.py`) verified all 540 answers, depths, and store totals.
+- `run_ledger.py` runs workers in one round per link level. A linked worker is given its source store's total as read from that store's worker report, so upstream slips carry downstream. The model-planned hierarchies are blocked on linked problems, because the total is read from the oracle report format.
+- Problems: seed 7401, 30 groups, 8 stores (4 linked, depths 0/1/2/4) and 16 stores (8 linked, depths 0/1/2/4/8), total and customer-totals questions: 540 problems. Run with 12B at 16k: single agent, ensemble, oracle split with code merge, oracle split with flat model merge.
+
+Smoke-test fix: with the source total stated before the ledger, 12B workers started their running total with it. It now comes after the ledger, with "It is not a row of this ledger; use it only to work out the amount of the row that refers to Store j."
+
+The run took 1.5 hours. One step failed on a malformed OpenRouter response (`JSONDecodeError`) and the queue resumed it.
+
+### Results
+
+Target accuracy by depth (8 stores: 0/1/2/4; 16 stores: 0/1/2/4/8):
+
+| system | 8 stores, total | 8 stores, customer totals | 16 stores, total | 16 stores, customer totals |
+|---|---|---|---|---|
+| single agent | 0.27/0.07/0.00/0.07 | 0.60/0.26/0.16/0.21 | 0.03/0.00/0.00/0.00/0.00 | 0.13/0.00/0.01/0.02/0.00 |
+| ensemble (B/3) | 0.20/0.00/0.03/0.03 | 0.57/0.20/0.18/0.20 | 0.00/0.00/0.00/0.00/0.00 | 0.09/0.00/0.00/0.00/0.00 |
+| oracle split, code merge | 0.87/0.20/0.37/0.43 | 0.73/0.45/0.42/0.53 | 0.73/0.10/0.20/0.27/0.27 | 0.58/0.22/0.28/0.24/0.26 |
+| oracle split, flat model merge | 0.83/0.33/0.33/0.37 | 0.60/0.47/0.41/0.51 | 0.77/0.17/0.13/0.30/0.27 | 0.28/0.15/0.15/0.15/0.13 |
+
+Critical-path output tokens by depth:
+
+| system | 8 stores, total | 8 stores, customer totals | 16 stores, total | 16 stores, customer totals |
+|---|---|---|---|---|
+| single agent | 512/892/985/1012 | 932/1595/1577/1767 | 642/1144/1111/1281/1467 | 1848/1940/1936/2033/1926 |
+| ensemble | 691/1024/1086/1248 | 1137/1923/1929/2111 | 650/1400/1382/1658/1991 | 2109/2218/2494/2367/2482 |
+| oracle split, code merge | 92/233/332/560 | 137/344/453/743 | 93/290/428/620/1048 | 132/346/538/798/1400 |
+| oracle split, flat model merge | 281/416/516/750 | 1115/1251/1398/1747 | 356/572/681/857/1289 | 1554/1946/2033/2206/2811 |
+
+Rounds are depth + 1 for the oracle split and depth + 2 with the model merge. Almost nothing starved: up to 10% of ensemble problems and 3% of model-merge problems on 16-store customer totals.
+
+Linked-worker diagnosis (oracle split, totals, 1,320 linked workers): given the total they were passed, 81% report the right store total, against 98% of unlinked workers. The rate does not depend on depth (0.72-0.85 per cell). It does depend on where the row sits: 0.78 in the middle of the ledger, 0.92-0.93 as the first or last row. The errors are small: a skipped row (45), rounding up instead of down (28), and off-by-a-few slips; only one worker added the full total.
+
+### Findings
+
+- **A reference row costs much more accuracy than chain depth.** Every system drops sharply from depth 0 to depth 1, with the same amounts and the same number of rounds for the baselines. From depth 1 to 8, accuracy is flat or rises slightly within noise. "One tenth, rounded down" mostly absorbs upstream slips, so errors do not compound along the chain.
+- **The hierarchy keeps its accuracy lead under dependence.** At every depth the oracle split beats the single agent, for example 16-store totals 0.27 against 0.00 at depth 8, and 8-store customer totals 0.53 against 0.21 at depth 4.
+- **The time gain shrinks linearly with depth, as predicted.** The oracle split's critical path grows from 93 to 1048 tokens on 16-store totals as depth goes 0 to 8, while the single agent's grows from 642 to 1467, mostly at the step from depth 0 to 1. At depth 8 the oracle split's advantage is about 1.4x on totals and on customer totals; with a model merge it nearly disappears on totals (1289 against 1467) and reverses on customer totals (2811 against 1926).
+- So dependence costs the hierarchy time, not accuracy, in this task. The accuracy cost of dependence comes from the harder rows, and it hits every system.
+
 ### Next tests, in priority order
 
 1. A merge budget proportional to each call's work (values to add), to test whether the 32-store tree collapse is a budgeting artifact.
 2. A 27B planner and reconstructor with 12B workers, to see whether a bigger lead fixes the average plan and the wide merge, compared with the 27B single agent at similar cost.
-3. Dependence inside the ledger task (for example a currency rate defined in another store's ledger), to restore the proposal's dependence axis and measure its cost in rounds.
+3. Dependence follow-ups: a dependence where upstream errors do compound (the full source total instead of a tenth), and a model planner that must find the dependency order itself.
 4. A question where merging needs everything (median sale, distinct customers), where the prediction is that the hierarchy loses. This bounds the claim.
 5. Another model family at similar sizes, once the design is settled.
 6. Bootstrap confidence intervals on the 30-group cells.
@@ -395,5 +442,5 @@ The 27B single agent never starves at either budget. At 8k the 27B ensemble star
 - Tell Lily about the switch to Gemma, the wide-task design, and the reversed interdependence prediction.
 - Check with Lia whether her runs depend on anything here. Nothing shared was changed.
 - The OpenRouter key was pasted into the chat. Rotate it after the project.
-- Code and results through 11-27 are committed. `.venv-or/` in the repo is a local environment and should not be committed.
+- Code and results through 11-27, including the dependence run, are committed. `.venv-or/` in the repo is a local environment and should not be committed.
 - `__pycache__/` is tracked since commit b70e92e. It should be untracked and added to `.gitignore`.
