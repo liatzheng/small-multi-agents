@@ -70,9 +70,46 @@ DISCOVER_RULE = (
     "not guess: write only a line NEED: Store <number>, naming that store, and no REPORT. You "
     "will be run again with its total."
 )
+CEO_PLAN_PROMPT = (
+    "You lead a company that answers a question about the sales ledgers of several stores; each "
+    "row is customer, category, amount. The stores are split into groups. Each group has a "
+    "manager and one worker per store. Each manager will receive the question and your "
+    "instruction, plan the work for its workers, and send you one group report. You will then "
+    "see only the group reports, not the ledgers, and must answer the question from them. Write "
+    "the instruction for the managers: exactly what each group report must contain so that the "
+    "question can be answered from the group reports. Do not answer the question. Return only "
+    "the instruction."
+)
+MANAGER_PLAN_PROMPT = (
+    "You are a manager in a company. Each store in your group goes to its own worker, who "
+    "receives the store's ledger and your instruction, nothing else; each row is customer, "
+    "category, amount. After the workers report, you will combine their reports, without "
+    "seeing the ledgers, into the group report your leader asks for. Write the instruction for "
+    "your workers: what to compute from their store's ledger and exactly what to report so that "
+    "you can build the group report from their reports. Do not answer the question. Return "
+    "only the instruction."
+)
+MANAGER_MERGE_PROMPT = (
+    "You are a manager in a company. Each of your workers followed your instruction below on "
+    "one store's ledger and wrote a report. You cannot see the ledgers. Combine the reports "
+    "into the group report your leader's instruction asks for, step by step. " + ADDING + " Then "
+    "write a line starting with REPORT: followed by the group report. Your leader sees only "
+    "what comes after REPORT:."
+)
+CEO_MERGE_PROMPT = (
+    "You lead a company. Each manager followed your instruction below for a group of stores and "
+    "sent a group report. You cannot see the ledgers. Combine the group reports to answer the "
+    "question, step by step. " + ADDING + " End your response with the final answer on its own "
+    "line in the form {form}"
+)
+# The CEO's merge sees one report per group rather than per store, so it holds back less.
+CEO_MERGE_SHARE = 8
+# A manager's planning call carries its prompt, so it takes a quarter of the group's budget, and
+# the same is held back for its merge.
+MANAGER_SHARE = 4
 SYSTEMS = ("single_agent", "ensemble", "hierarchy_oracle", "hierarchy_reconstruct", "hierarchy",
            "hierarchy_tree_reconstruct", "hierarchy_tree", "hierarchy_schedule",
-           "hierarchy_discover")
+           "hierarchy_discover", "hierarchy_ceo")
 # The reconstructor's share is held back from the workers so they cannot starve it.
 RECONSTRUCT_SHARE = 4
 PLAN_SHARE = 8
@@ -351,7 +388,7 @@ def team_messages(system, problem, instruction, items):
 def reconstruct_steps(problem, instruction, items, cap, seed, calls):
     system = RECONSTRUCT_PROMPT.format(form=problem["answer_format"])
     messages = team_messages(system, problem, instruction, items)
-    (reply,) = yield [{"messages": messages, "cap": cap, "seed": seed}]
+    (reply,) = yield [{"messages": messages, "cap": cap, "seed": seed, "job": "merge"}]
     prediction, format_ok = parse_answer(reply["final_text"], problem)
     calls.append({"stage": "reconstructor", "messages": messages, **reply,
                   "status": reply_status(reply, prediction)})
@@ -381,7 +418,8 @@ def merge_steps(problem, instruction, reports, budget, seed, calls, tree):
         for g, group in enumerate(groups):
             messages = team_messages(MERGE_PROMPT, problem, instruction,
                                      [(label(*span), r) for span, r in group])
-            requests.append({"messages": messages, "cap": left // pending, "seed": seed + g})
+            requests.append({"messages": messages, "cap": left // pending, "seed": seed + g,
+                             "job": "merge"})
         replies = yield requests
         seed += len(groups)
         pending -= len(groups)
@@ -439,7 +477,8 @@ def hierarchy_steps(problem, budget, seed, tree=False):
                 {"role": "user", "content": f"There are {problem['width']} stores with "
                                             f"{problem['rows']} rows each. One ledger looks like "
                                             f"this:\n{example}\n\nQuestion: {problem['question']}"}]
-    (reply,) = yield [{"messages": messages, "cap": budget // PLAN_SHARE, "seed": seed}]
+    (reply,) = yield [{"messages": messages, "cap": budget // PLAN_SHARE, "seed": seed,
+                       "job": "plan"}]
     calls = [{"stage": "planner", "messages": messages, **reply}]
     instruction = reply["final_text"] if reply["stop_reason"] == "stop" else ""
     if not instruction:
@@ -462,7 +501,7 @@ def schedule_steps(problem, budget, seed):
     messages = [{"role": "system", "content": SCHEDULE_PROMPT},
                 {"role": "user", "content": problem["prompt"]}]
     # The planner reads all ledgers, so B/8 would not even cover its prompt at 16 stores.
-    (reply,) = yield [{"messages": messages, "cap": budget // 4, "seed": seed}]
+    (reply,) = yield [{"messages": messages, "cap": budget // 4, "seed": seed, "job": "plan"}]
     calls = [{"stage": "planner", "messages": messages, **reply}]
     text = reply["final_text"] if reply["stop_reason"] == "stop" else ""
     pairs = [(int(a), int(b)) for a, b in NEEDS_LINE.findall(text)]
@@ -491,7 +530,8 @@ def discover_steps(problem, budget, seed):
                 {"role": "user", "content": f"There are {problem['width']} stores with "
                                             f"{problem['rows']} rows each. One ledger looks like "
                                             f"this:\n{example}\n\nQuestion: {problem['question']}"}]
-    (reply,) = yield [{"messages": messages, "cap": budget // PLAN_SHARE, "seed": seed}]
+    (reply,) = yield [{"messages": messages, "cap": budget // PLAN_SHARE, "seed": seed,
+                       "job": "plan"}]
     calls = [{"stage": "planner", "messages": messages, **reply}]
     instruction = reply["final_text"] if reply["stop_reason"] == "stop" else ""
     if not instruction:
@@ -512,6 +552,127 @@ def discover_steps(problem, budget, seed):
     return finish(problem, budget, calls, prediction, **fields)
 
 
+def ceo_steps(problem, budget, seed):
+    """A leader plans for managers, each manager plans for and merges one group of FAN_IN stores'
+    workers, and the leader merges the group reports.
+
+    The budget left after the leader's plan and merge share is split evenly over the groups.
+    Within a group, the manager's plan and merge each get a MANAGER_SHARE share and the workers
+    split the rest.
+    """
+    k = len(problem["stores"])
+    groups = [list(range(g + 1, min(g + FAN_IN, k) + 1)) for g in range(0, k, FAN_IN)]
+    labels = [f"Store {g[0]}" if len(g) == 1 else f"Stores {g[0]}-{g[-1]}" for g in groups]
+    messages = [{"role": "system", "content": CEO_PLAN_PROMPT},
+                {"role": "user", "content": f"There are {k} stores with {problem['rows']} rows "
+                                            f"each, in {len(groups)} groups of up to {FAN_IN} "
+                                            f"stores. One ledger looks like this:\n"
+                                            f"{problem['stores'][0]}\n\n"
+                                            f"Question: {problem['question']}"}]
+    (reply,) = yield [{"messages": messages, "cap": budget // PLAN_SHARE, "seed": seed,
+                       "job": "plan"}]
+    calls = [{"stage": "ceo_plan", "messages": messages, **reply}]
+    lead = reply["final_text"] if reply["stop_reason"] == "stop" else ""
+    if not lead:
+        status = "invalid_plan" if reply["stop_reason"] == "stop" else reply["stop_reason"]
+        return finish(problem, budget, calls, None, status=status, failed_stage="ceo_plan")
+    share = (budget - reply["total_tokens"] - budget // CEO_MERGE_SHARE) // len(groups)
+    seed += 1
+
+    requests = []
+    for g, (stores, label) in enumerate(zip(groups, labels)):
+        messages = [{"role": "system", "content": MANAGER_PLAN_PROMPT},
+                    {"role": "user", "content": f"Question: {problem['question']}\n\n"
+                                                f"Your group is {label}.\n\nYour leader's "
+                                                f"instruction for the group report:\n{lead}\n\n"
+                                                f"One of your group's ledgers looks like this:\n"
+                                                f"{problem['stores'][stores[0] - 1]}"}]
+        requests.append({"messages": messages, "cap": share // MANAGER_SHARE, "seed": seed + g,
+                         "job": "manager"})
+    replies = yield requests
+    seed += len(groups)
+    plans, spent = [], []
+    for g, (request, reply) in enumerate(zip(requests, replies)):
+        plan = reply["final_text"] if reply["stop_reason"] == "stop" else ""
+        calls.append({"stage": "manager_plan", "group": g + 1, "messages": request["messages"],
+                      **reply, "status": "planned" if plan else reply["stop_reason"]})
+        plans.append(plan)
+        spent.append(reply["total_tokens"])
+
+    # Every group's workers run in the same round; a group whose plan failed has none.
+    requests, owners = [], []
+    for g, stores in enumerate(groups):
+        if not plans[g]:
+            continue
+        cap = (share - spent[g] - share // MANAGER_SHARE) // len(stores)
+        for i in stores:
+            messages = [{"role": "system", "content": WORK_PROMPT},
+                        {"role": "user", "content": f"{plans[g]}\n\n{problem['stores'][i - 1]}"}]
+            requests.append({"messages": messages, "cap": cap, "seed": seed + i})
+            owners.append((g, i))
+    # A round with no calls would have no slowest call to time, so it is skipped.
+    replies = (yield requests) if requests else []
+    seed += k
+    reports = {}
+    for (g, i), request, reply in zip(owners, requests, replies):
+        report = extract_report(reply["final_text"]) if reply["stop_reason"] == "stop" else None
+        calls.append({"stage": "worker", "group": g + 1, "store": i,
+                      "messages": request["messages"], **reply,
+                      "status": reply_status(reply, report), "report": report})
+        reports[i] = report
+        spent[g] += reply["total_tokens"]
+
+    requests, merging = [], []
+    for g, stores in enumerate(groups):
+        if not plans[g]:
+            continue
+        body = "\n\n".join(f"Store {i} report:\n{reports[i] or '(no report)'}" for i in stores)
+        messages = [{"role": "system", "content": MANAGER_MERGE_PROMPT},
+                    {"role": "user", "content": f"Question: {problem['question']}\n\nYour "
+                                                f"leader's instruction for the group report:\n"
+                                                f"{lead}\n\nYour instruction to the workers:\n"
+                                                f"{plans[g]}\n\n{body}"}]
+        requests.append({"messages": messages, "cap": share - spent[g], "seed": seed + g,
+                         "job": "manager"})
+        merging.append(g)
+    replies = (yield requests) if requests else []
+    seed += len(groups)
+    group_reports = [None] * len(groups)
+    for g, request, reply in zip(merging, requests, replies):
+        report = extract_report(reply["final_text"]) if reply["stop_reason"] == "stop" else None
+        calls.append({"stage": "manager_merge", "group": g + 1, "messages": request["messages"],
+                      **reply, "status": reply_status(reply, report), "report": report})
+        group_reports[g] = report
+
+    body = "\n\n".join(f"{label} group report:\n{r or '(no report)'}"
+                        for label, r in zip(labels, group_reports))
+    messages = [{"role": "system", "content": CEO_MERGE_PROMPT.format(form=problem["answer_format"])},
+                {"role": "user", "content": f"Question: {problem['question']}\n\nInstruction "
+                                            f"given to each manager:\n{lead}\n\n{body}"}]
+    left = budget - sum(c["total_tokens"] for c in calls)
+    (reply,) = yield [{"messages": messages, "cap": left, "seed": seed, "job": "merge"}]
+    prediction, format_ok = parse_answer(reply["final_text"], problem)
+    status = reply_status(reply, prediction)
+    calls.append({"stage": "ceo_merge", "messages": messages, **reply, "status": status})
+    fields = {"worker_reports": sum(r is not None for r in reports.values()) / k,
+              "group_reports": sum(r is not None for r in group_reports) / len(groups),
+              "instruction": lead}
+    if status != "answered":
+        fields["status"] = status
+    return finish(problem, budget, calls, prediction, **fields)
+
+
+def with_jobs(steps, jobs):
+    """Send requests tagged with a job (plan, merge, manager) to that job's model, if one is set."""
+    replies = None
+    while True:
+        try:
+            requests = steps.send(replies)
+        except StopIteration as done:
+            return done.value
+        replies = yield [{**r, **jobs.get(r.get("job"), {})} for r in requests]
+
+
 SOLVERS = {
     "single_agent": single_steps,
     "ensemble": ensemble_steps,
@@ -522,6 +683,7 @@ SOLVERS = {
     "hierarchy_tree": functools.partial(hierarchy_steps, tree=True),
     "hierarchy_schedule": schedule_steps,
     "hierarchy_discover": discover_steps,
+    "hierarchy_ceo": ceo_steps,
 }
 
 
@@ -572,6 +734,11 @@ def main():
                         help="OpenRouter endpoint slug; requests never fall back to another")
     parser.add_argument("--concurrency", type=int, default=32, help="simultaneous API requests")
     parser.add_argument("--problem-threads", type=int, default=8, help="problems solved at once")
+    for job, who in (("plan", "planners, including the CEO"),
+                     ("merge", "reconstructors, mergers, and the CEO's merge"),
+                     ("manager", "hierarchy_ceo managers")):
+        parser.add_argument(f"--{job}-model", help=f"OpenRouter model ID for {who}")
+        parser.add_argument(f"--{job}-provider", help=f"endpoint slug for --{job}-model")
     parser.add_argument("--resume", action="store_true",
                         help="continue existing logs, skipping finished problems")
     args = parser.parse_args()
@@ -585,17 +752,30 @@ def main():
     except (ValueError, OSError) as error:
         parser.error(str(error))
     # The linked store's total is read from the oracle report format, which a planner may not use.
-    planned = {"hierarchy", "hierarchy_tree"} & set(args.systems)
+    planned = {"hierarchy", "hierarchy_tree", "hierarchy_ceo"} & set(args.systems)
     if planned and any(p.get("links") for p in problems):
         parser.error(f"{', '.join(sorted(planned))} cannot run problems with linked rows")
+
+    jobs = {}
+    for job in ("plan", "merge", "manager"):
+        model, provider = getattr(args, f"{job}_model"), getattr(args, f"{job}_provider")
+        if provider and not model:
+            parser.error(f"--{job}-provider needs --{job}-model")
+        if model:
+            jobs[job] = {"model": model, "provider": provider or args.provider}
+    # Runs with other models for some jobs get their own directory, named after those models.
+    run_name = args.model.split("/")[-1] + "".join(
+        f"_{job}-{jobs[job]['model'].split('/')[-1]}" for job in sorted(jobs))
 
     chat = OpenRouterChat(args.model, args.provider, key, tokenizer_file(), args.concurrency)
     lock = threading.Lock()
     for budget in args.budgets:
         for system in args.systems:
-            path = args.out_dir / args.model.split("/")[-1] / f"b{budget}" / f"{system}.jsonl"
+            path = args.out_dir / run_name / f"b{budget}" / f"{system}.jsonl"
             settings = {"model": args.model, "provider": args.provider, "budget": budget,
                         "seed": args.seed, "backend": "openrouter", "sampling": SAMPLING}
+            if jobs:
+                settings["jobs"] = jobs
             try:
                 finished = resume_log(path, settings, args.resume, key=problem_key)
             except ValueError as error:
@@ -605,7 +785,8 @@ def main():
             print(f"=== {system}, budget {budget}, {len(remaining)} problems", flush=True)
             results = []
             with ThreadPoolExecutor(args.problem_threads) as pool:
-                futures = [pool.submit(run_problem, SOLVERS[system](p, budget, args.seed), chat)
+                futures = [pool.submit(run_problem,
+                                       with_jobs(SOLVERS[system](p, budget, args.seed), jobs), chat)
                            for p in remaining]
                 for future in as_completed(futures):
                     result = {**future.result(), **settings}
