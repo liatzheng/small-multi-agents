@@ -23,6 +23,9 @@ SAMPLING = {"temperature": 1.0, "top_p": 0.95, "top_k": 64}
 # DeepInfra's standard Gemma endpoints accept at most this many completion tokens.
 MAX_OUTPUT = 16384
 RETRY_CODES = (408, 429, 500, 502, 503, 504)
+# urlopen's timeout bounds each socket read, not the whole response, and a run on 2026-11-28 sat
+# for 9 hours on connections that stayed open. A reply that takes longer than this is retried.
+REQUEST_DEADLINE = 900
 
 ANSWER_PROMPT = (
     "Work through the problem step by step. End your response with the final answer on its "
@@ -54,6 +57,9 @@ class OpenRouterChat:
         self.model, self.provider, self.key = model, provider, key
         self.tokenizer = Tokenizer.from_file(str(tokenizer_path))
         self.pool = ThreadPoolExecutor(concurrency)
+        # Requests run here so a stuck one can be abandoned; its thread stays blocked until the
+        # socket gives up, so the pool is larger than the number of simultaneous requests.
+        self.fetchers = ThreadPoolExecutor(4 * concurrency)
 
     def count(self, messages):
         # Gemma's chat template folds the system message into the first user turn.
@@ -104,16 +110,15 @@ class OpenRouterChat:
             began = time.perf_counter()
             try:
                 request = urllib.request.Request(API_URL, payload, headers)
-                with urllib.request.urlopen(request, timeout=600) as response:
-                    data = json.load(response)
+                data = self.fetchers.submit(fetch, request).result(timeout=REQUEST_DEADLINE)
             except urllib.error.HTTPError as error:
                 detail = error.read().decode(errors="replace")[:500]
                 if error.code not in RETRY_CODES:
                     raise RuntimeError(f"OpenRouter HTTP {error.code}: {detail}") from error
                 problem = f"HTTP {error.code}: {detail}"
-            # OSError covers URLError and timeouts, plus socket errors such as "No route to
-            # host" raised while reading a response after the network drops. HTTPException
-            # covers a response cut off mid-body (IncompleteRead).
+            # OSError covers URLError and timeouts, including the deadline above, plus socket
+            # errors such as "No route to host" raised while reading a response after the network
+            # drops. HTTPException covers a response cut off mid-body (IncompleteRead).
             except (OSError, http.client.HTTPException) as error:
                 problem = repr(error)
             else:
@@ -125,6 +130,11 @@ class OpenRouterChat:
             print(f"Retrying in {wait}s after {problem}", flush=True)
             time.sleep(wait)
         raise RuntimeError(f"OpenRouter failed 8 times; last error: {problem}")
+
+
+def fetch(request):
+    with urllib.request.urlopen(request, timeout=600) as response:
+        return json.load(response)
 
 
 def parse_tuple(text, width):
