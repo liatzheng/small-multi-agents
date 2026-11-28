@@ -423,11 +423,64 @@ Linked-worker diagnosis (oracle split, totals, 1,320 linked workers): given the 
 - **The time gain shrinks linearly with depth, as predicted.** The oracle split's critical path grows from 93 to 1048 tokens on 16-store totals as depth goes 0 to 8, while the single agent's grows from 642 to 1467, mostly at the step from depth 0 to 1. At depth 8 the oracle split's advantage is about 1.4x on totals and on customer totals; with a model merge it nearly disappears on totals (1289 against 1467) and reverses on customer totals (2811 against 1926).
 - So dependence costs the hierarchy time, not accuracy, in this task. The accuracy cost of dependence comes from the harder rows, and it hits every system.
 
+## 2026-11-27 to 11-28: dependence follow-ups, `results/ledger_depth_full/` and new systems
+
+### Design
+
+- **Compounding links.** `generate_ledger.py --link-amount full` writes the linked row as `the same as Store j's total`, so an upstream slip carries all the way down a chain. Same seed, ledgers, and links as `results/ledger_depth/problems.jsonl` (the tenth set still regenerates byte for byte). Linked store totals reach about 360 at depth 8. The independent resolver verified all 540 problems.
+- **`hierarchy_schedule`.** A planner reads every ledger (the full problem prompt) and writes the worker instruction plus lines `Store a needs Store b`. Code drops pairs that would close a cycle and runs workers in that order. The planner gets B/4, because its prompt alone is over B/8 at 16 stores.
+- **`hierarchy_discover`.** The planner sees one ledger, as in `hierarchy`. All workers start at once; a worker missing a total writes `NEED: Store j` and is rerun once j has reported.
+- Both: every report must include `store total = <n>` (the one line not left to the planner), a flat model reconstructor merges, and each worker round splits the budget left after the reconstructor's share over the stores still without a report. Both log `link_recall` and `link_precision` against the true links.
+- Fake-model tests pass for both systems on both problem sets (3,240 runs), and the older tests still pass.
+- Queue: full set with all 6 systems at 16k, then the two new systems on the tenth set at 16k, then both at 32k on both sets. The last step hung on dead connections from 02:46 to 12:00 on 11-28; killing the process let the queue resume it.
+
+### Results
+
+Compounding shows in error size, not in exact accuracy: a total is already wrong after one slip, so carrying the slip further only makes it more wrong. Median absolute error on 16-store totals, depths 0/1/2/4/8:
+
+| system | tenth links | full links |
+|---|---|---|
+| single agent | 26/46/42/39/44 | 56/70/96/298/930 |
+| oracle split, code merge | 0/2/2/3/3 | 0/6/18/8/43 |
+
+Customer totals, scored per customer, do show compounding in accuracy: the oracle split's 16-store scores at depths 1-8 fall from 0.22-0.28 (tenth) to 0.15-0.23 (full).
+
+Target accuracy at 16k, depths as before (8 stores: 0/1/2/4; 16 stores: 0/1/2/4/8):
+
+| system | links | 8 stores, total | 8 stores, customer totals | 16 stores, total | 16 stores, customer totals |
+|---|---|---|---|---|---|
+| single agent | full | 0.23/0.07/0.00/0.00 | 0.57/0.17/0.21/0.16 | 0.00/0.00/0.00/0.00/0.00 | 0.09/0.00/0.02/0.00/0.00 |
+| oracle split, code merge | full | 0.87/0.30/0.43/0.57 | 0.72/0.49/0.40/0.47 | 0.70/0.20/0.13/0.30/0.17 | 0.57/0.23/0.15/0.16/0.15 |
+| oracle split, model merge | full | 0.87/0.43/0.43/0.60 | 0.63/0.43/0.38/0.40 | 0.70/0.20/0.13/0.37/0.23 | 0.24/0.10/0.05/0.07/0.08 |
+| schedule | tenth | 0.73/0.27/0.10/0.00 | 0.38/0.10/0.21/0.22 | 0.33/0.00/0.03/0.03/0.03 | 0.11/0.02/0.02/0.00/0.01 |
+| schedule | full | 0.50/0.17/0.30/0.10 | 0.26/0.03/0.10/0.05 | 0.43/0.10/0.00/0.07/0.00 | 0.07/0.00/0.02/0.00/0.01 |
+| discover | tenth | 0.73/0.13/0.03/0.03 | 0.54/0.20/0.27/0.22 | 0.40/0.03/0.00/0.00/0.00 | 0.13/0.00/0.00/0.03/0.01 |
+| discover | full | 0.47/0.00/0.03/0.00 | 0.50/0.22/0.22/0.22 | 0.33/0.00/0.00/0.00/0.00 | 0.14/0.02/0.02/0.00/0.02 |
+
+At 32k the two new systems change little: on 16-store linked problems they stay at 0.00-0.07 on both sets. The ensemble on the full set matches its tenth-set pattern (near 0 at 16 stores).
+
+Link finding (16k; 32k is the same within a few points):
+
+- Schedule: recall 0.85-1.00, precision 0.83-0.99. At depth 0, where there are no links, the planner still lists dependencies in 86/120 (tenth) and 102/120 (full) problems; these only add rounds.
+- Discover: recall 0.56-0.82, precision 0.97-1.00. Workers that do not ask guess the amount.
+- With schedule, problems where every link was found score 0.10 (tenth) and 0.10 (full), against 0.03 and 0.01 when some link was missed. Finding the links is not the main loss.
+
+Starvation: discover at 16k starves on 67-93% of 16-store customer-totals problems at depths 1-8 (each rerun re-reads its ledger and instruction, about 600 input tokens, and round 1 uses most of the worker budget). At 32k this falls to 0-10% with almost no gain in accuracy. Schedule starves on 37-40% of 16-store depth-0 customer-totals problems at 16k, from long planner outputs.
+
+Critical-path output tokens: discover is the fastest model-run system (16-store totals at depth 8: 891-1026, against 1406-1467 for the single agent). Schedule is slower even at depth 0, where it averages 7.4 rounds against discover's 3: the dependencies it invents make workers wait. Its planner output is short (median about 140 tokens).
+
+### Findings
+
+- **Dependence costs the oracle split time; with compounding links it also costs accuracy, but far less than it costs the single agent.** The single agent's error grows about 17x with depth on full links; the oracle split's stays small.
+- **A 12B planner can find the dependency structure but not write a good plan.** Schedule finds nearly every link, yet scores well below the oracle split even with every link found, and even at depth 0 (16-store totals: 0.33-0.43 against 0.70-0.73). The loss is in its worker instructions and the model merge, as with `hierarchy` in the main run.
+- **Worker-side discovery is cheap in time but misses links.** Workers ask for 56-82% of what they need and guess the rest, which makes linked problems nearly always wrong.
+- **Budget is not the limit for either model-run system.** Doubling it to 32k removes starvation but not the accuracy gap.
+
 ### Next tests, in priority order
 
 1. A merge budget proportional to each call's work (values to add), to test whether the 32-store tree collapse is a budgeting artifact.
-2. A 27B planner and reconstructor with 12B workers, to see whether a bigger lead fixes the average plan and the wide merge, compared with the 27B single agent at similar cost.
-3. Dependence follow-ups: a dependence where upstream errors do compound (the full source total instead of a tenth), and a model planner that must find the dependency order itself.
+2. A better leader: a 27B planner and reconstructor with 12B workers, to see whether a bigger lead fixes the plan and the merge (including the schedule system), compared with the 27B single agent at similar cost.
+3. A deeper hierarchy: one leader, a level of managers who each plan and merge for a group of stores, and workers below them.
 4. A question where merging needs everything (median sale, distinct customers), where the prediction is that the hierarchy loses. This bounds the claim.
 5. Another model family at similar sizes, once the design is settled.
 6. Bootstrap confidence intervals on the 30-group cells.
@@ -442,5 +495,5 @@ Linked-worker diagnosis (oracle split, totals, 1,320 linked workers): given the 
 - Tell Lily about the switch to Gemma, the wide-task design, and the reversed interdependence prediction.
 - Check with Lia whether her runs depend on anything here. Nothing shared was changed.
 - The OpenRouter key was pasted into the chat. Rotate it after the project.
-- Code and results through 11-27, including the dependence run, are committed. `.venv-or/` in the repo is a local environment and should not be committed.
+- Code and results through 11-28, including the dependence follow-ups, are committed. `.venv-or/` in the repo is a local environment and should not be committed.
 - `__pycache__/` is tracked since commit b70e92e. It should be untracked and added to `.gitignore`.
