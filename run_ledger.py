@@ -61,6 +61,7 @@ REPORT_LINE = re.compile(r"^[\W_]*report[\W_]*:[*_\s]*", re.I | re.M)
 ANSWER_LINE = re.compile(r"answer[*_\s]*:[*_\s]*(.+)$", re.I | re.M)
 NUMBER = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 PAIR = re.compile(r"([A-Za-z]+)\**\s*[=:]\s*\**\s*(-?\d+)")
+TOTAL = re.compile(r"total\s*=\s*\**\s*(-?\d+)", re.I)
 
 
 def customer_values(text):
@@ -183,22 +184,51 @@ def ensemble_steps(problem, budget, seed, attempts=3):
     return finish(problem, budget, list(replies), prediction, **fields)
 
 
+def store_total(problem, report):
+    """Read a store's total from its worker's oracle report, or None if it is unreadable."""
+    if report is None:
+        return None
+    if problem["question_type"] == "total":
+        match = TOTAL.search(report)
+        return int(match.group(1)) if match else None
+    values = customer_values(report)
+    return sum(values.values()) if values else None
+
+
 def worker_steps(problem, instruction, cap, seed, calls):
-    """Give every store's ledger to its own worker in one parallel round."""
-    requests = []
-    for i, store in enumerate(problem["stores"]):
-        messages = [{"role": "system", "content": WORK_PROMPT},
-                    {"role": "user", "content": f"{instruction}\n\n{store}"}]
-        requests.append({"messages": messages, "cap": cap, "seed": seed + 1 + i})
-    replies = yield requests
-    reports = []
-    for i, (request, reply) in enumerate(zip(requests, replies), start=1):
-        report = extract_report(reply["final_text"]) if reply["stop_reason"] == "stop" else None
-        status = reply_status(reply, report)
-        calls.append({"stage": "worker", "store": i, "messages": request["messages"], **reply,
-                      "status": status, "report": report})
-        reports.append(report)
-    return reports
+    """Give every store's ledger to its own worker, one parallel round per link level.
+
+    A store with a linked row waits for the store it refers to, and its worker is told that
+    store's total as read from that worker's report, so upstream slips carry downstream.
+    """
+    links = {l["store"]: l for l in problem.get("links", [])}
+    reports = {}
+    for level in range(max((l["level"] for l in links.values()), default=0) + 1):
+        stores = [i for i in range(1, len(problem["stores"]) + 1)
+                  if links.get(i, {"level": 0})["level"] == level]
+        requests = []
+        for i in stores:
+            content = f"{instruction}\n\n{problem['stores'][i - 1]}"
+            if i in links:
+                # Stated before the ledger, workers began their running total with this number.
+                source = links[i]["source"]
+                total = store_total(problem, reports[source])
+                given = (f"Store {source}'s total is {total}." if total is not None else
+                         f"Store {source}'s total is unknown: its report is missing.")
+                content += (f"\n\n{given} It is not a row of this ledger; use it only to work "
+                            f"out the amount of the row that refers to Store {source}.")
+            messages = [{"role": "system", "content": WORK_PROMPT},
+                        {"role": "user", "content": content}]
+            requests.append({"messages": messages, "cap": cap, "seed": seed + i})
+        replies = yield requests
+        for i, request, reply in zip(stores, requests, replies):
+            report = extract_report(reply["final_text"]) if reply["stop_reason"] == "stop" else None
+            status = reply_status(reply, report)
+            calls.append({"stage": "worker", "store": i, "level": level,
+                          "messages": request["messages"], **reply, "status": status,
+                          "report": report})
+            reports[i] = report
+    return [reports[i] for i in range(1, len(problem["stores"]) + 1)]
 
 
 def team_messages(system, problem, instruction, items):
@@ -345,16 +375,17 @@ def read_problems(path):
 
 
 def problem_key(record):
-    return record["width"], record["group_id"], record["question_type"]
+    return record["width"], record["group_id"], record["question_type"], record.get("depth")
 
 
 def print_summary(results, path):
     cells = {}
     for r in results:
-        cells.setdefault((r["width"], r["question_type"]), []).append(r)
-    for (width, kind), rows in sorted(cells.items()):
+        cells.setdefault((r["width"], r.get("depth", -1), r["question_type"]), []).append(r)
+    for (width, depth, kind), rows in sorted(cells.items()):
         n = len(rows)
-        print(f"{width} stores, {kind}: {sum(r['correct'] for r in rows)}/{n} correct, "
+        where = f"{width} stores" + (f" depth {depth}" if depth >= 0 else "")
+        print(f"{where}, {kind}: {sum(r['correct'] for r in rows)}/{n} correct, "
               f"target accuracy {sum(r['target_accuracy'] for r in rows) / n:.2f}, "
               f"{sum(r['total_tokens'] for r in rows) / n:.0f} tokens, "
               f"{sum(r['critical_output_tokens'] for r in rows) / n:.0f} critical output tokens")
@@ -387,6 +418,10 @@ def main():
         problems = read_problems(args.problems)
     except (ValueError, OSError) as error:
         parser.error(str(error))
+    # The linked store's total is read from the oracle report format, which a planner may not use.
+    planned = {"hierarchy", "hierarchy_tree"} & set(args.systems)
+    if planned and any(p.get("links") for p in problems):
+        parser.error(f"{', '.join(sorted(planned))} cannot run problems with linked rows")
 
     chat = OpenRouterChat(args.model, args.provider, key, tokenizer_file(), args.concurrency)
     lock = threading.Lock()
@@ -412,7 +447,8 @@ def main():
                         with path.open("a", encoding="utf-8") as log:
                             print(json.dumps(result), file=log)
                     results.append(result)
-                    print(f"{result['width']} stores group {result['group_id']} "
+                    depth = f" depth {result['depth']}" if "depth" in result else ""
+                    print(f"{result['width']} stores{depth} group {result['group_id']} "
                           f"{result['question_type']}: {result['status']}, "
                           f"{result['total_tokens']} tokens, {result['critical_seconds']}s",
                           flush=True)
