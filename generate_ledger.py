@@ -7,7 +7,8 @@ per-store totals and counts, and customer totals need every customer's per-store
 
 With --linked and --depths, some stores get one row worth one tenth of another store's total,
 so their workers must wait for that store. Each depth reuses the group's ledgers and links in
-chains that many stores deep; depth 0 writes the same amounts as plain numbers.
+chains that many stores deep; depth 0 writes the same amounts as plain numbers. With
+--link-amount full the row is worth the whole total, so an upstream slip carries all the way down.
 """
 
 import argparse
@@ -43,8 +44,9 @@ def oracle_instruction(kind, category):
             "Report one line per customer who appears: <customer> = <total>")
 
 
-def link_ledgers(ledgers, names, linked, depth, rng):
-    """Insert a row into `linked` stores worth one tenth of another store's total, rounded down.
+def link_ledgers(ledgers, names, linked, depth, rng, link_amount="tenth"):
+    """Insert a row into `linked` stores worth one tenth of another store's total, rounded down,
+    or the whole total when link_amount is "full".
 
     The linked stores form chains `depth` deep: a store at level L refers to one at level L-1,
     and level 0 stores refer to none. Returns rows as (name, category, amount, source), where
@@ -60,7 +62,7 @@ def link_ledgers(ledgers, names, linked, depth, rng):
     full = [[(n, c, a, None) for n, c, a in ledger] for ledger in ledgers]
     totals = [sum(a for _, _, a in ledger) for ledger in ledgers]
     for s in sorted(chained, key=level.get):
-        amount = totals[source[s]] // 10
+        amount = totals[source[s]] // 10 if link_amount == "tenth" else totals[source[s]]
         full[s].insert(rng.randint(0, len(full[s])),
                        (rng.choice(names), rng.choice(CATEGORIES), amount, source[s]))
         totals[s] += amount
@@ -68,14 +70,16 @@ def link_ledgers(ledgers, names, linked, depth, rng):
     return full, links
 
 
-def row_text(name, category, amount, source):
+def row_text(name, category, amount, source, link_amount="tenth"):
     if source is None:
         return f"{name}, {category}, {amount}"
+    if link_amount == "full":
+        return f"{name}, {category}, the same as Store {source + 1}'s total"
     return f"{name}, {category}, one tenth of Store {source + 1}'s total, rounded down"
 
 
 def generate_ledger_problems(groups, seed, stores, rows, customers, max_amount, kinds,
-                             linked=0, depths=(None,)):
+                             linked=0, depths=(None,), link_amount="tenth"):
     """Yield one problem per group, depth, and question type; depth None means no linked rows."""
     if groups < 1 or stores < 2 or rows < 1 or max_amount < 2:
         raise ValueError("--groups and --rows must be positive, --stores at least 2, "
@@ -105,7 +109,8 @@ def generate_ledger_problems(groups, seed, stores, rows, customers, max_amount, 
                 # A string seed keeps the main draws, and so the ledgers, the same for any depths.
                 # Depth 0 takes depth 1's links, so the two differ only in how amounts are written.
                 link_rng = random.Random(f"{seed}:{group_id}:{max(depth, 1)}")
-                full, links = link_ledgers(ledgers, names, linked, max(depth, 1), link_rng)
+                full, links = link_ledgers(ledgers, names, linked, max(depth, 1), link_rng,
+                                           link_amount)
                 if depth == 0:
                     full = [[(n, c, a, None) for n, c, a, _ in ledger] for ledger in full]
                     links = []
@@ -115,7 +120,7 @@ def generate_ledger_problems(groups, seed, stores, rows, customers, max_amount, 
                     spent[name] = spent.get(name, 0) + amount
             picked = [a for ledger in full for _, cat, a, _ in ledger if cat == category]
             present = sorted(spent)
-            texts = [f"Store {i}:\n" + "\n".join(row_text(*row) for row in ledger)
+            texts = [f"Store {i}:\n" + "\n".join(row_text(*row, link_amount) for row in ledger)
                      for i, ledger in enumerate(full, start=1)]
             answers = {
                 "total": (["total"], [sum(spent.values())]),
@@ -140,6 +145,9 @@ def generate_ledger_problems(groups, seed, stores, rows, customers, max_amount, 
                 if depth is not None:
                     record.update({"linked": linked, "depth": depth, "links": links,
                                    "store_totals": [sum(a for _, _, a, _ in l) for l in full]})
+                    # Only full links are marked, so tenth-link problem files stay as first written.
+                    if link_amount == "full":
+                        record["link_amount"] = "full"
                 yield record
 
 
@@ -156,11 +164,14 @@ def main():
                         help="stores with a row worth one tenth of another store's total")
     parser.add_argument("--depths", nargs="+", type=int,
                         help="deepest chain of linked stores, one problem set per depth")
+    parser.add_argument("--link-amount", choices=("tenth", "full"), default="tenth",
+                        help="a linked row is worth one tenth of the other store's total, or all of it")
     args = parser.parse_args()
     try:
         for problem in generate_ledger_problems(
                 args.groups, args.seed, args.stores, args.rows, args.customers,
-                args.max_amount, args.types, args.linked, tuple(args.depths or [None])):
+                args.max_amount, args.types, args.linked, tuple(args.depths or [None]),
+                args.link_amount):
             print(json.dumps(problem))
     except ValueError as error:
         parser.error(str(error))

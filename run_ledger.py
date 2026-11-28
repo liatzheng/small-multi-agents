@@ -49,8 +49,30 @@ MERGE_PROMPT = (
     "line starting with REPORT: followed by the combined report. Your team sees only what comes "
     "after REPORT:."
 )
+# For linked rows, every worker also reports its store's total in a fixed form, so code can pass
+# it to the stores that refer to it. Only this line is not left to the planner.
+STORE_TOTAL_LINE = "Also report one line: store total = <the sum of all amounts in your ledger>"
+SCHEDULE_PROMPT = (
+    "You are the orchestrator of a team. The data is the sales ledgers of several stores; each "
+    "row is customer, category, amount. Each worker will receive one store's ledger and your "
+    "instruction, nothing else, and will also report its store's total, the sum of all its "
+    "amounts. A reconstructor will then see the question, your instruction, and every worker's "
+    "report, but not the ledgers, and must answer the question from the reports alone. If a "
+    "store's ledger cannot be completed without another store's total, write a line "
+    "'Store <a> needs Store <b>'; the worker for store a will then run after store b's worker "
+    "and be given its total. Write the instruction for the workers: what to compute from their "
+    "store's ledger and exactly what to report so that the question can be answered from the "
+    "reports. Then write the needs lines, if any. Do not answer the question. Return only the "
+    "instruction and the needs lines."
+)
+DISCOVER_RULE = (
+    " If a row's amount refers to another store's total and you were not given that total, do "
+    "not guess: write only a line NEED: Store <number>, naming that store, and no REPORT. You "
+    "will be run again with its total."
+)
 SYSTEMS = ("single_agent", "ensemble", "hierarchy_oracle", "hierarchy_reconstruct", "hierarchy",
-           "hierarchy_tree_reconstruct", "hierarchy_tree")
+           "hierarchy_tree_reconstruct", "hierarchy_tree", "hierarchy_schedule",
+           "hierarchy_discover")
 # The reconstructor's share is held back from the workers so they cannot starve it.
 RECONSTRUCT_SHARE = 4
 PLAN_SHARE = 8
@@ -62,6 +84,9 @@ ANSWER_LINE = re.compile(r"answer[*_\s]*:[*_\s]*(.+)$", re.I | re.M)
 NUMBER = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 PAIR = re.compile(r"([A-Za-z]+)\**\s*[=:]\s*\**\s*(-?\d+)")
 TOTAL = re.compile(r"total\s*=\s*\**\s*(-?\d+)", re.I)
+STORE_TOTAL = re.compile(r"store[*_\s]*total\s*=\s*\**\s*(-?\d+)", re.I)
+NEEDS_LINE = re.compile(r"^[\W_]*Store\s+(\d+)\s+needs\s+Store\s+(\d+)\W*$", re.I | re.M)
+NEED = re.compile(r"^[\W_]*NEED[\W_]*:[*_\s]*Store\s+(\d+)", re.I | re.M)
 
 
 def customer_values(text):
@@ -231,6 +256,89 @@ def worker_steps(problem, instruction, cap, seed, calls):
     return [reports[i] for i in range(1, len(problem["stores"]) + 1)]
 
 
+def given_total(source, report):
+    """Tell a worker another store's total, read from that store's report."""
+    match = STORE_TOTAL.search(report or "")
+    given = (f"Store {source}'s total is {match.group(1)}." if match else
+             f"Store {source}'s total is unknown: its report is missing.")
+    return (f"\n\n{given} It is not a row of this ledger; use it only to work out the amount "
+            f"of the row that refers to Store {source}.")
+
+
+def linked_worker_steps(problem, instruction, budget, seed, calls, needs=None):
+    """Run workers in rounds, giving each store the totals of the stores it needs.
+
+    With needs (store to set of stores, from a planner), a worker waits for those stores. Without
+    it, every worker starts at once, and a worker that writes NEED: Store j runs again once j has
+    reported. Each round splits the budget left after the reconstructor's share over the stores
+    still without a report, since rerun calls are not known in advance.
+    """
+    k = len(problem["stores"])
+    discover = needs is None
+    needs = {i: set(needs.get(i, ())) if needs else set() for i in range(1, k + 1)}
+    system = WORK_PROMPT + DISCOVER_RULE if discover else WORK_PROMPT
+    held = budget // RECONSTRUCT_SHARE
+    done, runs = {}, Counter()
+    for round_no in range(1, 2 * k + 2):
+        ready = [i for i in range(1, k + 1) if i not in done and needs[i] <= set(done)]
+        if not ready:
+            break
+        left = budget - held - sum(c["total_tokens"] for c in calls)
+        cap = max(left, 0) // (k - len(done))
+        requests = []
+        for i in ready:
+            content = f"{instruction}\n\n{problem['stores'][i - 1]}"
+            content += "".join(given_total(j, done[j]) for j in sorted(needs[i]))
+            messages = [{"role": "system", "content": system},
+                        {"role": "user", "content": content}]
+            requests.append({"messages": messages, "cap": cap, "seed": seed + i + k * runs[i]})
+            runs[i] += 1
+        replies = yield requests
+        for i, request, reply in zip(ready, requests, replies):
+            text = reply["final_text"] if reply["stop_reason"] == "stop" else ""
+            asked = {int(j) for j in NEED.findall(text)} if discover else set()
+            new = {j for j in asked if 1 <= j <= k and j != i} - needs[i]
+            report = None if new else extract_report(text)
+            status = "need" if new else reply_status(reply, report)
+            calls.append({"stage": "worker", "store": i, "round": round_no,
+                          "given": sorted(needs[i]), "need": sorted(new),
+                          "messages": request["messages"], **reply, "status": status,
+                          "report": report})
+            if new:
+                needs[i] |= new
+            else:
+                done[i] = report
+    # A cycle of needs, or the round limit, leaves stores without a report.
+    return [done.get(i) for i in range(1, k + 1)]
+
+
+def link_scores(problem, found):
+    """Compare (store, source) pairs a system found with the true links."""
+    true = {(l["store"], l["source"]) for l in problem.get("links", [])}
+    hit = len(true & found)
+    return {"link_recall": hit / len(true) if true else None,
+            "link_precision": hit / len(found) if found else None}
+
+
+def acyclic_needs(pairs, k):
+    """Keep planned (store, source) pairs in order, dropping any that would close a cycle."""
+    needs = {}
+    def reaches(a, b):
+        stack, seen = [a], set()
+        while stack:
+            x = stack.pop()
+            if x == b:
+                return True
+            if x not in seen:
+                seen.add(x)
+                stack.extend(needs.get(x, ()))
+        return False
+    for a, b in pairs:
+        if 1 <= a <= k and 1 <= b <= k and a != b and not reaches(b, a):
+            needs.setdefault(a, set()).add(b)
+    return needs
+
+
 def team_messages(system, problem, instruction, items):
     """Show labelled reports, such as ("Store 3", text) or ("Stores 1-4", text), with context."""
     body = "\n\n".join(f"{label} report:\n{r or '(no report)'}" for label, r in items)
@@ -348,6 +456,62 @@ def hierarchy_steps(problem, budget, seed, tree=False):
     return finish(problem, budget, calls, prediction, **fields)
 
 
+def schedule_steps(problem, budget, seed):
+    """A planner reads every ledger, writes the instruction and which stores need which, workers
+    run in that order, and a model merges the reports."""
+    messages = [{"role": "system", "content": SCHEDULE_PROMPT},
+                {"role": "user", "content": problem["prompt"]}]
+    # The planner reads all ledgers, so B/8 would not even cover its prompt at 16 stores.
+    (reply,) = yield [{"messages": messages, "cap": budget // 4, "seed": seed}]
+    calls = [{"stage": "planner", "messages": messages, **reply}]
+    text = reply["final_text"] if reply["stop_reason"] == "stop" else ""
+    pairs = [(int(a), int(b)) for a, b in NEEDS_LINE.findall(text)]
+    instruction = NEEDS_LINE.sub("", text).strip()
+    if not instruction:
+        status = "invalid_plan" if reply["stop_reason"] == "stop" else reply["stop_reason"]
+        return finish(problem, budget, calls, None, status=status, failed_stage="planner")
+    instruction += "\n" + STORE_TOTAL_LINE
+    needs = acyclic_needs(pairs, len(problem["stores"]))
+    reports = yield from linked_worker_steps(problem, instruction, budget, seed, calls, needs)
+    prediction, status = yield from merge_steps(
+        problem, instruction, reports, budget, seed, calls, False)
+    found = {(a, b) for a, bs in needs.items() for b in bs}
+    fields = {"worker_reports": sum(r is not None for r in reports) / len(reports),
+              **link_scores(problem, found), "instruction": instruction,
+              "planned_needs": sorted(found)}
+    if status != "answered":
+        fields["status"] = status
+    return finish(problem, budget, calls, prediction, **fields)
+
+
+def discover_steps(problem, budget, seed):
+    """A planner sees one ledger as in hierarchy, and workers ask for the totals they need."""
+    example = problem["stores"][0]
+    messages = [{"role": "system", "content": PLAN_PROMPT},
+                {"role": "user", "content": f"There are {problem['width']} stores with "
+                                            f"{problem['rows']} rows each. One ledger looks like "
+                                            f"this:\n{example}\n\nQuestion: {problem['question']}"}]
+    (reply,) = yield [{"messages": messages, "cap": budget // PLAN_SHARE, "seed": seed}]
+    calls = [{"stage": "planner", "messages": messages, **reply}]
+    instruction = reply["final_text"] if reply["stop_reason"] == "stop" else ""
+    if not instruction:
+        status = "invalid_plan" if reply["stop_reason"] == "stop" else reply["stop_reason"]
+        return finish(problem, budget, calls, None, status=status, failed_stage="planner")
+    instruction += "\n" + STORE_TOTAL_LINE
+    reports = yield from linked_worker_steps(problem, instruction, budget, seed, calls)
+    prediction, status = yield from merge_steps(
+        problem, instruction, reports, budget, seed, calls, False)
+    workers = [c for c in calls if c["stage"] == "worker"]
+    found = {(c["store"], j) for c in workers for j in c["need"]}
+    # Rerun calls would count as missing reports, so count the stores that ended with one.
+    fields = {"worker_reports": sum(r is not None for r in reports) / len(reports),
+              **link_scores(problem, found), "instruction": instruction,
+              "worker_calls": len(workers)}
+    if status != "answered":
+        fields["status"] = status
+    return finish(problem, budget, calls, prediction, **fields)
+
+
 SOLVERS = {
     "single_agent": single_steps,
     "ensemble": ensemble_steps,
@@ -356,6 +520,8 @@ SOLVERS = {
     "hierarchy": hierarchy_steps,
     "hierarchy_tree_reconstruct": functools.partial(reconstruct_oracle_steps, tree=True),
     "hierarchy_tree": functools.partial(hierarchy_steps, tree=True),
+    "hierarchy_schedule": schedule_steps,
+    "hierarchy_discover": discover_steps,
 }
 
 
